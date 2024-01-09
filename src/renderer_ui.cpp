@@ -39,6 +39,99 @@ void renderer_ui::RenderAll(RendererWindow *window, Scene *scene)
 
 bool renderer_ui::isFocusOnUI() { return ImGui::GetIO().WantCaptureMouse; }
 
+/*********************
+* File Browser
+**********************/
+namespace fs = std::filesystem;
+void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_path)
+{
+    if (!showFileBrowser)
+    {
+        return;
+    }
+    ImGui::Begin("File Browser");
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+
+    if (ImGui::Button(".."))
+    {
+        *_path = _path->parent_path();
+    }
+    ImGui::SameLine();
+    std::vector<fs::path> roots = FileSystem::GetRootPaths();
+    int root_num = roots.size();
+    static int root_idx = 0;
+    if (ImGui::BeginCombo("root paths", _path->string().c_str()))
+    {
+        for (int n = 0; n < root_num; n++)
+        {
+            const bool is_selected = (root_idx == n);
+            if (ImGui::Selectable(roots[n].string().c_str(), is_selected))
+            {
+                root_idx = n;
+                *_path = fs::path(roots[n].string().c_str());
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+    std::vector<fs::directory_entry> files;
+    for ( auto const& dir_entry : fs::directory_iterator{*_path})
+    {
+        files.push_back(dir_entry);
+    }
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
+    ImGui::BeginChild("FileList", ImVec2(500, 150), ImGuiChildFlags_Border, window_flags);
+    static int selected_file = -1;
+    for ( int i = 0; i < files.size(); i++)
+    {
+        std::string filename = files[i].path().filename().string();
+        float width = 16;
+        float height = 16;
+        ImVec2 uv_min = ImVec2(0.0f, 0.0f);                        // Top-left
+        ImVec2 uv_max = ImVec2(1.0f, 1.0f);                        // Lower-right
+        ImVec4 tint_col = ImGui::GetStyleColorVec4(ImGuiCol_Text); // No tint
+        if (fs::is_directory(files[i]))
+        {
+            ImGui::Image((GLuint *)EditorContent::editor_tex["folder_ico"]->id, ImVec2(width, height), uv_min, uv_max, tint_col);
+        }
+        else
+        {
+            ImGui::Image((GLuint *)EditorContent::editor_tex["file_ico"]->id, ImVec2(width, height), uv_min, uv_max, tint_col);
+        }
+        ImGui::SameLine();
+        if (ImGui::Selectable(filename.c_str(), selected_file == i))
+        {
+            selected_file = i;
+        }
+    }
+    ImGui::EndChild();
+    if (ImGui::Button("Cancel"))
+    {
+        showFileBrowser = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Confirm"))
+    {
+        if (fs::is_directory(files[selected_file]))
+        {
+            *_path = files[selected_file].path();
+        }
+        else
+        {
+            *_path = files[selected_file].path();
+            showFileBrowser = false;
+        }
+    }
+    ImGui::PopStyleVar();
+    ImGui::End();
+}
+
+/*********************
+* Import Model Panel
+**********************/
 void renderer_ui::ImportModelPanel(RendererWindow *window)
 {
     if (!showImportModelPanel)
@@ -48,18 +141,26 @@ void renderer_ui::ImportModelPanel(RendererWindow *window)
     ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
     {
         ImGui::Begin("Import Model");
-        static char import_path[128] = "path..";
+        static char model_path[128];
+        strcpy_s(model_path, import_model_path.string().c_str());
         static std::string info = "";
-        ImGui::InputText("Model Path", import_path, IM_ARRAYSIZE(import_path));
+        ImGui::InputText("Model Path", model_path, IM_ARRAYSIZE(model_path));
+        ImGui::SameLine();
+        if (ImGui::Button("..."))
+        {
+            import_model_path = FileSystem::GetContentPath();
+            file_path = &import_model_path;
+            showFileBrowser = true;
+        }
         if (ImGui::Button("Cancel"))
         {
             showImportModelPanel = false;
-            strcpy_s(import_path, "path..");
+            strcpy_s(model_path, import_model_path.string().c_str());
         }
         ImGui::SameLine();
         if (ImGui::Button("Confirm"))
         {
-            std::string path_s = import_path;
+            std::string path_s = model_path;
             Model *new_model = new Model(path_s);
             if (new_model->meshes.size() == 0)
             {
@@ -68,7 +169,7 @@ void renderer_ui::ImportModelPanel(RendererWindow *window)
             else
             {
                 showImportModelPanel = false;
-                strcpy_s(import_path, "path..");
+                strcpy_s(model_path, import_model_path.string().c_str());
             }
         }
         ImGui::Text(info.c_str());
@@ -76,6 +177,9 @@ void renderer_ui::ImportModelPanel(RendererWindow *window)
     }
 }
 
+/*********************
+* Import Shader Panel
+**********************/
 void renderer_ui::ImportShaderPanel(RendererWindow *window)
 {
     if (!showImportShaderPanel)
@@ -123,6 +227,9 @@ void renderer_ui::ImportShaderPanel(RendererWindow *window)
     }
 }
 
+/*********************
+* Import Texture Panel
+**********************/
 void renderer_ui::ImportTexturePanel(RendererWindow *window)
 {
     if (!showImportTexturePanel)
@@ -130,18 +237,26 @@ void renderer_ui::ImportTexturePanel(RendererWindow *window)
         return;
     }
     ImGui::Begin("Import Texture");
-    static char tex_path[128] = "path..";
+    static char tex_path[128];
+    strcpy_s(tex_path, import_tex_path.string().c_str());
     static std::string info = "";
     ImGui::InputText("Texture Path", tex_path, IM_ARRAYSIZE(tex_path));
+    ImGui::SameLine();
+    if (ImGui::Button("..."))
+    {
+        import_tex_path = FileSystem::GetContentPath();
+        file_path = &import_tex_path;
+        showFileBrowser = true;
+    }
     if (ImGui::Button("Cancel"))
     {
         showImportTexturePanel = false;
-        strcpy_s(tex_path, "path..");
+        strcpy_s(tex_path, import_tex_path.string().c_str());
     }
     ImGui::SameLine();
     if (ImGui::Button("Confirm"))
     {
-        std::string path_s = tex_path;
+        std::string path_s = import_tex_path.string();
         Texture2D *new_tex = new Texture2D(path_s);
         if (!new_tex->is_valid)
         {
@@ -150,14 +265,16 @@ void renderer_ui::ImportTexturePanel(RendererWindow *window)
         else
         {
             showImportTexturePanel = false;
-            strcpy_s(tex_path, "path..");
+            strcpy_s(tex_path, import_tex_path.string().c_str());
         }
     }
     ImGui::Text(info.c_str());
     ImGui::End();
 }
 
-
+/*********************
+* Main Panel
+**********************/
 void renderer_ui::mainUI(RendererWindow *window)
 {
     ImGuiWindowFlags window_flags = 0;
@@ -201,8 +318,12 @@ void renderer_ui::mainUI(RendererWindow *window)
     ImportModelPanel(window);
     ImportShaderPanel(window);
     ImportTexturePanel(window);
+    FileBrowser(window, file_path);
 }
 
+/*********************
+* Scene Panel
+**********************/
 void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 {
     ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
@@ -251,6 +372,9 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
     }
 }
 
+/*********************
+* Detail Panel
+**********************/
 void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
 {
     ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
@@ -265,6 +389,9 @@ void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
     }
 }
 
+/*********************
+* Resource Panel
+**********************/
 void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
 {
     // collect loaded resources' names

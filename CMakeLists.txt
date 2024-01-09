@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME}  src/glad.c
                                 src/renderer_ui.cpp
                                 src/scene_object.cpp
                                 src/render_queue.cpp
+                                src/editor_content.cpp
                                 src/renderer_window.cpp 
                                 src/input_management.cpp 
                                 thirdparty/imgui/backends/imgui_impl_glfw.cpp

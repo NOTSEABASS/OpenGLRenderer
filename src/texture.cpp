@@ -8,9 +8,6 @@
 #include <algorithm>
 #include <string>
 
-Texture2D* Texture2D::default_tex           = nullptr;
-Texture2D* Texture2D::default_normal_map    = nullptr;
-
 std::map<std::string, Texture2D *> Texture2D::LoadedTextures;
 
 Texture2D::Texture2D(std::string _path, bool _is_editor) : path(_path), is_editor(_is_editor)

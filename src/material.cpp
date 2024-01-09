@@ -55,14 +55,14 @@ void Material::OnTextureRemoved(Texture2D *removed_texture)
     {
         if (*(material_variables.allTextures[i]->variable) == removed_texture)
         {
-            this->SetTexture(material_variables.allTextures[i]->variable, Texture2D::default_tex);
+            this->SetTexture(material_variables.allTextures[i]->variable, EditorContent::editor_tex["default_tex"]);
         }
     }
 }
 
 ModelMaterial::ModelMaterial(Shader *_shader) : Material::Material(_shader)
 {
-    albedo = Texture2D::default_tex;
+    albedo = EditorContent::editor_tex["default_tex"];
     material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("albedo", &albedo));
     albedo->textureRefs.AddRef(this);
     material_variables.allColor.push_back(new MaterialSlot<float *>("color", color));

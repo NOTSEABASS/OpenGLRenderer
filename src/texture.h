@@ -21,8 +21,6 @@ public:
     bool            is_valid        = false;
 
     EditorResource<Material*>       textureRefs;
-    static Texture2D*               default_tex;
-    static Texture2D*               default_normal_map;
 
 public:
     Texture2D(std::string _path, bool _is_editor = false);

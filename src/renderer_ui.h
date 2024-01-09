@@ -1,5 +1,7 @@
 #pragma once
 #include <imgui/imgui.h>
+#include <filesystem>
+#include <file_system.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 
@@ -21,6 +23,7 @@ public:
     void ImportModelPanel   (RendererWindow *window                 );
     void ImportShaderPanel  (RendererWindow *window                 );
     void ImportTexturePanel (RendererWindow *window                 );
+    void FileBrowser        (RendererWindow *window, std::filesystem::path *_path);
     void shutdown();
     static bool isFocusOnUI();
 
@@ -29,5 +32,9 @@ private:
     bool showImportModelPanel       = false;
     bool showImportShaderPanel      = false;
     bool showImportTexturePanel     = false;
-
+    bool showFileBrowser            = false;
+    std::filesystem::path *file_path;
+    std::filesystem::path import_tex_path = FileSystem::GetContentPath();
+    std::filesystem::path import_model_path = FileSystem::GetContentPath();
+    std::filesystem::path import_shader_path = FileSystem::GetContentPath();
 };

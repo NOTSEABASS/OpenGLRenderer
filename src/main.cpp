@@ -9,12 +9,13 @@
 #include <model.h>
 #include <scene.h>
 #include <shader.h>
+#include <editor_content.h>
 #include <iostream>
 #include <vector>
 
 bool focused        = false;
-float currentFrame  = 0.0f; // 当前帧与上一帧的时间差
-float lastFrame     = 0.0f;    // 上一帧的时间
+float currentFrame  = 0.0f;     // 当前帧与上一帧的时间差
+float lastFrame     = 0.0f;     // 上一帧的时间
 float deltaTime     = 0.0f;
 
 // camera
@@ -30,35 +31,38 @@ int main()
 
     // load models
     // -----------
-    Model *M_nanosuit = new Model(FileSystem::FileSystem::GetContentPath() / "Models/nanosuit/nanosuit.obj");
-    Model *M_bunny = new Model(FileSystem::FileSystem::GetContentPath() / "Models/bunny.fbx");
-    Model *M_sphere = new Model(FileSystem::FileSystem::GetContentPath() / "Models/sphere.fbx");
-    Model *M_cube = new Model(FileSystem::FileSystem::GetContentPath() / "Models/cube.fbx");
+    Model *M_nanosuit   = new Model(FileSystem::FileSystem::GetContentPath() / "Models/nanosuit/nanosuit.obj");
+    Model *M_bunny      = new Model(FileSystem::FileSystem::GetContentPath() / "Models/bunny.fbx");
+    Model *M_sphere     = new Model(FileSystem::FileSystem::GetContentPath() / "Models/sphere.fbx");
+    Model *M_cube       = new Model(FileSystem::FileSystem::GetContentPath() / "Models/cube.fbx");
     // build and compile our shader program
     // ------------------------------------
-    Shader *default_shader = new Shader(FileSystem::GetContentPath() / "Shader/default.vs",
-                                        FileSystem::GetContentPath() / "Shader/default.fs",
-                                        true);
-    Shader *lighting_shader = new Shader(FileSystem::GetContentPath() / "Shader/color.vs",
-                                         FileSystem::GetContentPath() / "Shader/color.fs");
-    Shader *model_shader = new Shader(FileSystem::GetContentPath() / "Shader/default.vs",
-                                      FileSystem::GetContentPath() / "Shader/model.fs",
-                                      true);
-
-    Shader *PBR_shader = new Shader(FileSystem::GetContentPath() / "Shader/default.vs",
-                                      FileSystem::GetContentPath() / "Shader/PBR.fs",
-                                      true);
+    Shader *default_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
+                                            FileSystem::GetContentPath() / "Shader/default.fs",
+                                            true);
+    Shader *lighting_shader = new Shader(   FileSystem::GetContentPath() / "Shader/color.vs",
+                                            FileSystem::GetContentPath() / "Shader/color.fs");
+    Shader *model_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
+                                            FileSystem::GetContentPath() / "Shader/model.fs",
+                                            true);
+    Shader *PBR_shader      = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
+                                            FileSystem::GetContentPath() / "Shader/PBR.fs",
+                                            true);
 
     default_shader->LoadShader();
     lighting_shader->LoadShader();
     model_shader->LoadShader();
     PBR_shader->LoadShader();
 
-    Texture2D *wallTex = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/wall.jpg");
-    Texture2D *normalTex = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/normal.png");
-    Texture2D *whiteTex = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/white.png", true);
-    Texture2D::default_tex = whiteTex;
-    Texture2D::default_normal_map = normalTex;
+    Texture2D *wallTex      = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/wall.jpg");
+    Texture2D *normalTex    = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/normal.png", true);
+    Texture2D *whiteTex     = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/white.png", true);
+    Texture2D *folder_ico   = new Texture2D(FileSystem::FileSystem::GetEditorPath() / "ico/folder_ico.png", true);
+    Texture2D *file_ico   = new Texture2D(FileSystem::FileSystem::GetEditorPath() / "ico/file_ico.png", true);
+    EditorContent::editor_tex.insert({"folder_ico", folder_ico});
+    EditorContent::editor_tex.insert({"file_ico", file_ico});
+    EditorContent::editor_tex.insert({"default_tex", whiteTex});
+    EditorContent::editor_tex.insert({"default_normal_map", normalTex});
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -88,7 +92,7 @@ int main()
         scene.RenderScene(&main_window, &camera);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
+        // --------------------------------- ----------------------------------------------
         glfwPollEvents();
 
         // Start the Dear ImGui frame

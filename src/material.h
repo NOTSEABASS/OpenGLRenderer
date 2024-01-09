@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <texture.h>
+#include <editor_content.h>
 
 class Shader;
 
@@ -61,7 +62,7 @@ class ModelMaterial : public Material
 public:
 	// Definations of material parameters:
 	float color[3] 		= { 1, 1, 1 };
-	Texture2D* albedo 	= nullptr;
+	Texture2D* albedo 	= EditorContent::editor_tex["default_tex"];
 
 public:
 	ModelMaterial(Shader* _shader);
@@ -74,12 +75,12 @@ class PBRMaterial : public Material
 {
 public:
 	// Definations of material parameters:
-	Texture2D* albedo_map 			= Texture2D::default_tex;
-	Texture2D* normal_map 			= Texture2D::default_normal_map;
-	Texture2D* ao_map 				= Texture2D::default_tex;
-	Texture2D* roughness_map 		= Texture2D::default_tex;
-	Texture2D* metal_map 			= Texture2D::default_tex;
-    Texture2D* spec_map 			= Texture2D::default_tex;
+	Texture2D* albedo_map 			= EditorContent::editor_tex["default_tex"];
+	Texture2D* normal_map 			= EditorContent::editor_tex["default_normal_map"];
+	Texture2D* ao_map 				= EditorContent::editor_tex["default_tex"];
+	Texture2D* roughness_map 		= EditorContent::editor_tex["default_tex"];
+	Texture2D* metal_map 			= EditorContent::editor_tex["default_tex"];
+    Texture2D* spec_map 			= EditorContent::editor_tex["default_tex"];
 	float color[3] 					= { 1, 1, 1 };
 	float normal_strength 			= 1;
     float ao_strength 				= 1;
