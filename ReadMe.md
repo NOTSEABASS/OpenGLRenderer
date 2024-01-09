@@ -1,8 +1,6 @@
 This is a tiny-renderer project written in c++ based on OpenGL
 
-![](/sample1.png)
-
-![](sample2.png)
+![sample1](sample1.jpeg)
 
 ## Build
 
