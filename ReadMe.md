@@ -1,8 +1,12 @@
 This is a tiny-renderer project written in c++ based on OpenGL
 
-![sample1](sample1.jpeg)
+![](/sample_gif_1.gif)
+
+![](/sample_gif_2.gif)
 
 ## Build
+
+### windows
 
 build with cmake
 
