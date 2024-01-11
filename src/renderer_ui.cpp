@@ -21,7 +21,7 @@ renderer_ui::~renderer_ui() { }
 
 void renderer_ui::setup(GLFWwindow *window)
 {
-    ImGui::StyleColorsDark(); // Setup Dear ImGui style
+    ImGui::StyleColorsCustom(); // Setup Dear ImGui style
     // ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
@@ -83,7 +83,7 @@ void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_pa
         files.push_back(dir_entry);
     }
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
-    ImGui::BeginChild("FileList", ImVec2(500, 150), ImGuiChildFlags_Border, window_flags);
+    ImGui::BeginChild("FileList", ImVec2(600, 150), ImGuiChildFlags_Border, window_flags);
     static int selected_file = -1;
     for ( int i = 0; i < files.size(); i++)
     {
@@ -104,7 +104,23 @@ void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_pa
         ImGui::SameLine();
         if (ImGui::Selectable(filename.c_str(), selected_file == i))
         {
-            selected_file = i;
+            if (selected_file == i)
+            {
+                if (fs::is_directory(files[selected_file]))
+                {
+                    *_path = files[selected_file].path();
+                }
+                else
+                {
+                    *_path = files[selected_file].path();
+                    showFileBrowser = false;
+                }
+                selected_file = -1;
+            }
+            else
+            {
+                selected_file = i;
+            }
         }
     }
     ImGui::EndChild();
@@ -124,6 +140,7 @@ void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_pa
             *_path = files[selected_file].path();
             showFileBrowser = false;
         }
+        selected_file = -1;
     }
     ImGui::PopStyleVar();
     ImGui::End();
@@ -304,7 +321,7 @@ void renderer_ui::mainUI(RendererWindow *window)
             }
             if (ImGui::BeginMenu("Options"))
             {
-                ImGui::SliderFloat("Camera Speed", &window->render_camera->MovementSpeed, 0.0f, 10.0f);
+                ImGui::SliderFloat("Camera Speed", &window->render_camera->MovementSpeed, 0.0f, 20.0f);
                 ImGui::ColorEdit3("clear color", (float *)window->clear_color); // Edit 3 floats representing a color
                 ImGui::EndMenu();
             }
@@ -565,7 +582,23 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
                         ImGui::Text(("name:" + tex->name).c_str());
                         ImGui::Text(("ref count:" + std::to_string(tex->textureRefs.references.size())).c_str());
                         ImGui::Text(("path:" + tex->path).c_str());
-                        ImGui::Text(("type:" + tex->type).c_str());
+
+                        const char* types[]= {"RED", "RGB", "RGBA", "SRGB", "SRGBA"};
+                        static int type_idx = -1;
+                        const char* cur_type = types[tex->tex_type];
+                        if (ImGui::BeginCombo("type", cur_type))
+                        {
+                            for (int n = 0; n < 5; n++)
+                            {
+                                if (ImGui::Selectable(types[n], false))
+                                {
+                                    tex->tex_type = (ETexType)n;
+                                    tex->ResetTextureType(tex->tex_type);
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+
                         ImGui::Text(("width:" + std::to_string(tex->width)).c_str());
                         ImGui::Text(("height:" + std::to_string(tex->height)).c_str());
                         ImGui::EndChild();

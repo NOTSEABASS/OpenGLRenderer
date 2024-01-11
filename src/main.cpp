@@ -29,6 +29,15 @@ int main()
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
 
+    Texture2D *normalTex    = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/normal.png", ETexType::RGBA, true);
+    Texture2D *wallTex      = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/wall.jpg");
+    Texture2D *whiteTex     = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/white.png", ETexType::SRGBA, true);
+    Texture2D *folder_ico   = new Texture2D(FileSystem::FileSystem::GetEditorPath() / "ico/folder_ico.png", ETexType::SRGBA, true);
+    Texture2D *file_ico     = new Texture2D(FileSystem::FileSystem::GetEditorPath() / "ico/file_ico.png", ETexType::SRGBA, true);
+    EditorContent::editor_tex.insert({"default_normal_map", normalTex});
+    EditorContent::editor_tex.insert({"folder_ico", folder_ico});
+    EditorContent::editor_tex.insert({"file_ico", file_ico});
+    EditorContent::editor_tex.insert({"default_tex", whiteTex});
     // load models
     // -----------
     Model *M_nanosuit   = new Model(FileSystem::FileSystem::GetContentPath() / "Models/nanosuit/nanosuit.obj");
@@ -54,15 +63,6 @@ int main()
     model_shader->LoadShader();
     PBR_shader->LoadShader();
 
-    Texture2D *wallTex      = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/wall.jpg");
-    Texture2D *normalTex    = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/normal.png", true);
-    Texture2D *whiteTex     = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/white.png", true);
-    Texture2D *folder_ico   = new Texture2D(FileSystem::FileSystem::GetEditorPath() / "ico/folder_ico.png", true);
-    Texture2D *file_ico   = new Texture2D(FileSystem::FileSystem::GetEditorPath() / "ico/file_ico.png", true);
-    EditorContent::editor_tex.insert({"folder_ico", folder_ico});
-    EditorContent::editor_tex.insert({"file_ico", file_ico});
-    EditorContent::editor_tex.insert({"default_tex", whiteTex});
-    EditorContent::editor_tex.insert({"default_normal_map", normalTex});
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 

@@ -10,19 +10,28 @@
 
 std::map<std::string, Texture2D *> Texture2D::LoadedTextures;
 
-Texture2D::Texture2D(std::string _path, bool _is_editor) : path(_path), is_editor(_is_editor)
+Texture2D::Texture2D(std::string _path, ETexType type,  bool _is_editor) : 
+    path(_path),
+    tex_type(type),
+    is_editor(_is_editor)
 {
-    is_valid = LoadTexture2D(path.c_str());
+    is_valid = LoadTexture2D(path.c_str(), type);
 }
 
-Texture2D::Texture2D(const char *_path, bool _is_editor) : path(_path), is_editor(_is_editor)
+Texture2D::Texture2D(const char *_path, ETexType type,  bool _is_editor) :
+    path(_path),
+    tex_type(type),
+    is_editor(_is_editor)
 {
-    is_valid = LoadTexture2D(path.c_str());
+    is_valid = LoadTexture2D(path.c_str(), type);
 }
 
-Texture2D::Texture2D(std::filesystem::path _path, bool _is_editor) : path(_path.string()), is_editor(_is_editor)
+Texture2D::Texture2D(std::filesystem::path _path, ETexType type, bool _is_editor) : 
+    path(_path.string()),
+    tex_type(type),
+    is_editor(_is_editor)
 {
-    is_valid = LoadTexture2D(path.c_str());
+    is_valid = LoadTexture2D(path.c_str(), type);
 }
 
 Texture2D::~Texture2D()
@@ -42,7 +51,7 @@ void Texture2D::DeleteTexture2D()
     glDeleteTextures(1, &id);
 }
 
-bool Texture2D::LoadTexture2D(const char *path)
+bool Texture2D::LoadTexture2D(const char *path, ETexType type)
 {
     int width, height, nrComponents;
     glGenTextures(1, &this->id);
@@ -58,19 +67,45 @@ bool Texture2D::LoadTexture2D(const char *path)
     if (data)
     {
         GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
-
         this->path = path_s;
         this->width = width;
         this->height = height;
         this->nrChannels = nrComponents;
 
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        if (nrChannels == 1)
+        {
+            tex_type = ETexType::RED;
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        }
+        else if (nrChannels == 3)
+        {
+            if (type == ETexType::SRGB || type == ETexType::SRGBA)
+            {
+                tex_type = ETexType::SRGB;
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            }
+            else
+            {
+                tex_type = ETexType::RGB;
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            }
+        }
+        else if(nrChannels == 4)
+        {
+            if (type == ETexType::SRGB || type == ETexType::SRGBA)
+            {
+                tex_type = ETexType::SRGBA;
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            }
+            else
+            {
+                tex_type = ETexType::RGBA;
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            }
+        }
+        
+
+
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -83,4 +118,9 @@ bool Texture2D::LoadTexture2D(const char *path)
     name = path_s.substr(path_s.find_last_of('/') + 1, path_s.size());
     LoadedTextures.insert(std::map<std::string, Texture2D *>::value_type(name, this));
     return true;
+}
+
+void Texture2D::ResetTextureType(ETexType type)
+{
+    LoadTexture2D(path.c_str(), type);
 }

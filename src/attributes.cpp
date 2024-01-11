@@ -64,11 +64,13 @@ void ATR_MaterialTexture::UI_Implement()
     std::string tex_type = "null";
     if (*texture != nullptr)
     {
+        const char* types[]= {"RED", "RGB", "RGBA", "SRGB", "SRGBA"};
         item_name = (*texture)->name;
-        tex_type = (*texture)->type;
+        tex_type = types[(*texture)->tex_type];
     }
     std::string material_id = std::to_string(material->id);
     std::string atrtex_id = std::to_string(id);
+
     ImGui::BeginChild(("child##" + material_id + atrtex_id).c_str(), ImVec2(200, 65), ImGuiChildFlags_Border);
     ImGui::Text(slot_name.c_str());
     ImGui::Text(("name:" + item_name).c_str());
@@ -110,6 +112,7 @@ void ATR_MaterialTexture::UI_Implement()
             ImGui::EndPopup();
         }
     }
+    
 }
 
 ATR_MaterialFloat::ATR_MaterialFloat(std::string _name, Material *_material, float *_value) :   slot_name(_name), 
@@ -238,7 +241,9 @@ void ATR_MeshRenderer::UI_Implement()
         title = "Mesh Renderer##" + std::to_string(meshRenderer->mesh->VAO);
         meshInfo = "vertices: " + std::to_string(meshRenderer->mesh->vertices.size());
     }
-    ImGui::SeparatorText(title.c_str());
-    ImGui::Text(meshInfo.c_str());
-    atr_material->UI_Implement();
+    if (ImGui::CollapsingHeader(title.c_str()))
+    {
+        ImGui::Text(meshInfo.c_str());
+        atr_material->UI_Implement();
+    }
 }

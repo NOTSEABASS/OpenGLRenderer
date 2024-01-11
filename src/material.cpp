@@ -94,9 +94,9 @@ PBRMaterial::PBRMaterial(Shader *_shader) : Material::Material(_shader)
     material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("spec_map", &spec_map));
 
     material_variables.allColor.push_back(new MaterialSlot<float *>("color", color));
+    material_variables.allColor.push_back(new MaterialSlot<float *>("specularColor", specular_color));
     material_variables.allFloat.push_back(new MaterialSlot<float *>("normalStrength", &normal_strength));
     material_variables.allFloat.push_back(new MaterialSlot<float *>("aoStrength", &ao_strength));
     material_variables.allFloat.push_back(new MaterialSlot<float *>("roughnessStrength", &roughness_strength));
     material_variables.allFloat.push_back(new MaterialSlot<float *>("metalStrength", &metal_strength));
-    material_variables.allFloat.push_back(new MaterialSlot<float *>("specularStrength", &specularStrength));
 }

@@ -127,16 +127,16 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // normal: texture_normalN
 
     // 1. diffuse maps
-    vector<Texture2D*> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+    vector<Texture2D*> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
     // 2. specular maps
-    vector<Texture2D*> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    vector<Texture2D*> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     // 3. normal maps
-    std::vector<Texture2D*> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+    std::vector<Texture2D*> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT);
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
     // 4. height maps
-    std::vector<Texture2D*> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+    std::vector<Texture2D*> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT);
     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
     // return a mesh object created from the extracted mesh data
@@ -145,7 +145,7 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
 // checks all material textures of a given type and loads the textures if they're not loaded yet.
 // the required info is returned as a Texture struct.
-vector<Texture2D*> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)
+vector<Texture2D*> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
 {
     vector<Texture2D*> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
@@ -167,10 +167,8 @@ vector<Texture2D*> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType ty
         {   // if texture hasn't been loaded already, load it
             string filename = string(str.C_Str());
             filename = this->directory + '/' + filename;
-            // std::cout << "Load texture directory: " << filename << std::endl; 
             Texture2D* tex = new Texture2D(filename.c_str());
-            tex->type = typeName;
-            tex->path = str.C_Str();
+            tex->path = filename.c_str();
             textures.push_back(tex);
             textures_loaded.push_back(tex);  // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
         }

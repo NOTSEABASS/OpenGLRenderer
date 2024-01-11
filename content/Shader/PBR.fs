@@ -19,11 +19,11 @@ uniform sampler2D roughness_map;
 uniform sampler2D ao_map;
 uniform sampler2D spec_map;
 uniform vec3 color;
+uniform vec3 specularColor;
 uniform float normalStrength;
 uniform float aoStrength;
 uniform float roughnessStrength;
 uniform float metalStrength;
-uniform float specularStrength;
 
 float near = 0.1; 
 float far  = 100.0;
@@ -97,7 +97,7 @@ PBRLightingInfo CalculatePBRLighting(vec3 n, vec3 l, vec3 v, vec3 t, vec3 b,
     pbr.Kd = Kd;
     pbr.Ks = Ks;
     pbr.diffuse = lambert;
-    pbr.specular = saturate(cspec * specular);
+    pbr.specular = saturate(cspec * specular * lightColor);
     pbr.ambient = ambient * albedo * ao;
     return pbr;
 }
@@ -121,7 +121,7 @@ void main()
     vec4 albedo = texture(albedo_map, fs_in.TexCoords);
     vec4 metallic = texture(metal_map, fs_in.TexCoords) * metalStrength;
     vec4 ao = texture(ao_map, fs_in.TexCoords) * aoStrength;
-    vec4 specColor = texture(spec_map, fs_in.TexCoords) * specularStrength;
+    vec3 specColor = texture(spec_map, fs_in.TexCoords).xyz * specularColor;
     vec4 roughness = texture(roughness_map, fs_in.TexCoords) * roughnessStrength;
     vec3 normalWS = texture(normal_map, fs_in.TexCoords).rgb;
     normalWS = normalize(normalWS * 2.0 - 1.0);
@@ -140,11 +140,10 @@ void main()
 
 
     PBRLightingInfo PBR = CalculatePBRLighting(normalWS, lightDir, viewDir, worldTangent, worldBitangent, 
-                                                            specColor.xyz, color * albedo.xyz, lightColor, metallic.x, roughness.x, 
+                                                            specColor, color * albedo.xyz, lightColor, metallic.x, roughness.x, 
                                                             ambient, ao.x);
     vec3 midres = GetPBRLightingResult(PBR, NdotL);
-    FragColor = vec4(midres,1.0);
-    // FragColor = vec4(specular,1);
-    // float depth = LinearizeDepth(gl_FragCoord.z) / far; // 为了演示除以 far
-    // FragColor = vec4(vec3(depth), 1.0);
+    float gamma = 2.2;
+    vec3 fragColor = pow(midres.rgb, vec3(1.0/gamma));
+    FragColor = vec4(fragColor,1.0);
 }

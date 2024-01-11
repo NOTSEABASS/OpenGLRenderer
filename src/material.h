@@ -82,11 +82,11 @@ public:
 	Texture2D* metal_map 			= EditorContent::editor_tex["default_tex"];
     Texture2D* spec_map 			= EditorContent::editor_tex["default_tex"];
 	float color[3] 					= { 1, 1, 1 };
+	float specular_color[3] 		= { 1, 1, 1 };
 	float normal_strength 			= 1;
     float ao_strength 				= 1;
     float roughness_strength 		= 1;
     float metal_strength 			= 0;
-    float specularStrength	 		= 1;
 
 public:
 	PBRMaterial(Shader* _shader);
