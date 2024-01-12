@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <editor_settings.h>
 #include <texture.h>
 #include <material.h>
 #include <Shader.h>
@@ -57,6 +58,7 @@ public:
     // render the mesh
     void Draw(Material *material)
     {
+        // Use material shader
         material->Setup(textures);
 
         switch (material->cullface)
@@ -154,7 +156,20 @@ public:
     {
         if (material->IsValid() && mesh != nullptr)
         {
-            mesh->Draw(material);
+            if (EditorSettings::UsePolygonMode)
+            {
+                // draw mesh
+                glBindVertexArray(mesh->VAO);
+                glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+
+                // always good practice to set everything back to defaults once configured.
+                glActiveTexture(GL_TEXTURE0);
+            }
+            else
+            {
+                mesh->Draw(material);
+            }
         }
     }
 };

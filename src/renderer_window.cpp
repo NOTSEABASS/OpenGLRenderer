@@ -1,16 +1,20 @@
 #include <input_management.h>
 #include <renderer_window.h>
+#include <postprocess.h>
 #include <renderer_ui.h>
 #include <iostream>
 
 std::map<GLFWwindow *, Camera *> RendererWindow::window_camera_map;
+std::map<GLFWwindow* , RendererWindow *> RendererWindow::w_rw_map;
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
+    WindowSize new_size(width, height);
+    RendererWindow::w_rw_map[window]->SetWindowSize(new_size);
+    
 }
 
 // mouse and keyboard callback functions(broadcast to InputInfo)
@@ -61,21 +65,33 @@ void mouse_click_callback(GLFWwindow *window, int button, int state, int mod)
     }
 }
 
+void RendererWindow::SetWindowSize(WindowSize size)
+{
+    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+    cur_window_size = size;
+    glViewport(0, 0, size.width, size.height);
+    postprocess->ResizeRenderArea(size.width, size.height);
+    glfwSetWindowSize(Window, size.width, size.height);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+}
+
 RendererWindow::RendererWindow(Camera *camera, std::string name) : render_camera(camera), window_name(name)
 {
     Window = init_window();
     imgui = new renderer_ui();
     imgui->setup(Window);
-    RendererWindow::window_camera_map.insert(std::map<GLFWwindow *, Camera *>::value_type(Window, render_camera));
+    window_camera_map.insert({Window, render_camera});
+    w_rw_map.insert({Window, this});
     clear_color = new float[3]{0};
 }
 
-RendererWindow::RendererWindow(Camera *camera, std::string name, unsigned int _width, unsigned int _height) : render_camera(camera), window_name(name), width(_width), height(_height)
+RendererWindow::RendererWindow(Camera *camera, std::string name, WindowSize size) : render_camera(camera), window_name(name), cur_window_size(size)
 {
     Window = init_window();
     imgui = new renderer_ui();
     imgui->setup(Window);
-    RendererWindow::window_camera_map.insert(std::map<GLFWwindow *, Camera *>::value_type(Window, render_camera));
+    window_camera_map.insert({Window, render_camera});
+    w_rw_map.insert({Window, this});
     clear_color = new float[3]{0};
 }
 
@@ -88,6 +104,7 @@ GLFWwindow *RendererWindow::init_window()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 8);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -95,7 +112,7 @@ GLFWwindow *RendererWindow::init_window()
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(width, height, window_name.c_str(), NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(cur_window_size.width, cur_window_size.height, window_name.c_str(), NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -103,7 +120,7 @@ GLFWwindow *RendererWindow::init_window()
         return nullptr;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetMouseButtonCallback(window, mouse_click_callback);

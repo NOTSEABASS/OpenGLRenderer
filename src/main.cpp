@@ -10,8 +10,16 @@
 #include <scene.h>
 #include <shader.h>
 #include <editor_content.h>
+#include <render_texture.h>
+#include <editor_settings.h>
+#include <postprocess.h>
 #include <iostream>
 #include <vector>
+
+#define window_width    1920
+#define window_height   1080
+
+const double Pi = 3.1415926;
 
 bool focused        = false;
 float currentFrame  = 0.0f;     // 当前帧与上一帧的时间差
@@ -19,12 +27,12 @@ float lastFrame     = 0.0f;     // 上一帧的时间
 float deltaTime     = 0.0f;
 
 // camera
-Camera camera(glm::vec3(0.0f, 10.0f, 15.0f));
+Camera camera(glm::vec3(0.0f, 20.0f, 20.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -40);
 Scene scene;
 
 int main()
 {
-    RendererWindow main_window(&camera, "Renderer", 1920, 1080);
+    RendererWindow main_window(&camera, "Renderer", WindowSize(window_width, window_height));
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
@@ -57,14 +65,19 @@ int main()
     Shader *PBR_shader      = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
                                             FileSystem::GetContentPath() / "Shader/PBR.fs",
                                             true);
+    Shader *screen_shader   = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                            FileSystem::GetContentPath() / "Shader/framebuffer.fs",
+                                            true);
 
     default_shader->LoadShader();
     lighting_shader->LoadShader();
     model_shader->LoadShader();
     PBR_shader->LoadShader();
+    screen_shader->LoadShader();
 
-    // uncomment this call to draw in wireframe polygons.
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // Create a postprocess
+    PostProcess *postprocess = new PostProcess(main_window, screen_shader);
+    main_window.postprocess = postprocess;
 
     // render loop
     // -----------
@@ -86,9 +99,7 @@ int main()
         }
         // render
         // ------
-        glClearColor(main_window.clear_color[0], main_window.clear_color[1], main_window.clear_color[2], 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        scene.renderQueue.clear_color = main_window.clear_color;
         scene.RenderScene(&main_window, &camera);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

@@ -4,6 +4,7 @@
 #include <scene.h>
 #include <scene_object.h>
 #include <vector>
+#include <editor_settings.h>
 
 const char *glsl_version = "#version 150";
 renderer_ui::renderer_ui()
@@ -49,6 +50,11 @@ void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_pa
     {
         return;
     }
+    int width = window->Width() / 3;
+    int height = window->Height() / 5;
+    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
+
     ImGui::Begin("File Browser");
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
 
@@ -83,7 +89,7 @@ void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_pa
         files.push_back(dir_entry);
     }
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
-    ImGui::BeginChild("FileList", ImVec2(600, 150), ImGuiChildFlags_Border, window_flags);
+    ImGui::BeginChild("FileList", ImVec2(width - 50, height - 100), ImGuiChildFlags_Border, window_flags);
     static int selected_file = -1;
     for ( int i = 0; i < files.size(); i++)
     {
@@ -131,16 +137,23 @@ void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_pa
     ImGui::SameLine();
     if (ImGui::Button("Confirm"))
     {
-        if (fs::is_directory(files[selected_file]))
+        if (selected_file != -1)
         {
-            *_path = files[selected_file].path();
+            if (fs::is_directory(files[selected_file]))
+            {
+                *_path = files[selected_file].path();
+            }
+            else
+            {
+                *_path = files[selected_file].path();
+                showFileBrowser = false;
+            }
+            selected_file = -1;
         }
         else
         {
-            *_path = files[selected_file].path();
             showFileBrowser = false;
         }
-        selected_file = -1;
     }
     ImGui::PopStyleVar();
     ImGui::End();
@@ -155,7 +168,10 @@ void renderer_ui::ImportModelPanel(RendererWindow *window)
     {
         return;
     }
-    ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+    int width = window->Width() / 3;
+    int height = window->Height() / 8;
+    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     {
         ImGui::Begin("Import Model");
         static char model_path[128];
@@ -203,6 +219,10 @@ void renderer_ui::ImportShaderPanel(RendererWindow *window)
     {
         return;
     }
+        int width = window->Width() / 3;
+    int height = window->Height() / 8;
+    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
     {
         ImGui::Begin("Import Shader");
@@ -253,6 +273,10 @@ void renderer_ui::ImportTexturePanel(RendererWindow *window)
     {
         return;
     }
+    int width = window->Width() / 3;
+    int height = window->Height() / 8;
+    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     ImGui::Begin("Import Texture");
     static char tex_path[128];
     strcpy_s(tex_path, import_tex_path.string().c_str());
@@ -294,6 +318,10 @@ void renderer_ui::ImportTexturePanel(RendererWindow *window)
 **********************/
 void renderer_ui::mainUI(RendererWindow *window)
 {
+    int width = window->Width() / 8 > 200 ? window->Width() / 8 : 200;
+    int height = window->Height() / 12 > 80 ? window->Width() / 12 : 80;
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     ImGuiWindowFlags window_flags = 0;
     bool *p_open = new bool(true);
     window_flags |= ImGuiWindowFlags_MenuBar;
@@ -323,6 +351,36 @@ void renderer_ui::mainUI(RendererWindow *window)
             {
                 ImGui::SliderFloat("Camera Speed", &window->render_camera->MovementSpeed, 0.0f, 20.0f);
                 ImGui::ColorEdit3("clear color", (float *)window->clear_color); // Edit 3 floats representing a color
+                if(ImGui::Checkbox("Use PolygonMode", &EditorSettings::UsePolygonMode))
+                {
+                    if (EditorSettings::UsePolygonMode)
+                    {
+                        EditorSettings::UsePostProcess = false;
+                    }
+                }
+                if (!EditorSettings::UsePolygonMode)
+                {
+                    ImGui::Checkbox("Use PostProcess", &EditorSettings::UsePostProcess);
+                }
+                static int window_size_idx = -1;
+                if (ImGui::BeginCombo("resolution",window->cur_window_size.to_string().c_str()))
+                {
+                    for (int n = 0; n < sizeof(EditorSettings::window_size_list) / sizeof(WindowSize); n++)
+                    {
+                        const bool is_selected = (window_size_idx == n);
+                        if (ImGui::Selectable(EditorSettings::window_size_list[n].to_string().c_str(), is_selected))
+                        {
+                            window_size_idx = n;
+                            window->SetWindowSize(EditorSettings::window_size_list[window_size_idx]);
+                        }
+
+                        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();
@@ -343,7 +401,12 @@ void renderer_ui::mainUI(RendererWindow *window)
 **********************/
 void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 {
-    ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
+    const int min_width = 200;
+    int width = window->Width() / 8 > min_width ? window->Width() / 8 : min_width;
+    int main_height = window->Height() / 12 > 80 ? window->Width() / 12 : 80;
+    int height = window->Height() - main_height - window->Height() / 4;
+    ImGui::SetNextWindowPos(ImVec2(0, main_height), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     {
         ImGui::Begin("Scene");
         static int selected_obj = -1;
@@ -394,7 +457,10 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 **********************/
 void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
 {
-    ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
+    const int min_width = 300;
+    int width = window->Width() / 8 > min_width ? window->Width() / 8 : min_width;
+    ImGui::SetNextWindowPos(ImVec2(window->Width() - width, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, window->Height() / 12 * 9), ImGuiCond_Always);
     {
         ImGui::Begin("Detail");
         if (selected != nullptr)
@@ -411,6 +477,8 @@ void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
 **********************/
 void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
 {
+    ImGui::SetNextWindowPos(ImVec2(0, window->Height() / 4 * 3), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(window->Width(), window->Height() / 4), ImGuiCond_Always);
     // collect loaded resources' names
     std::vector<std::string> model_names;
     std::vector<std::string> tex_names;
@@ -433,11 +501,11 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
         shader_names.push_back(it->first);
     }
 
-    ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(window->Width(), 400), ImGuiCond_Always);
     {
         ImGui::Begin("Resource");
-        float preview_width = window->width / 2;
-        float preview_height = window->width / 8;
+        float preview_width = window->Width() / 2;
+        float preview_height = window->Width() / 8;
         ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
         if (ImGui::BeginTabBar("Resource Bar", tab_bar_flags))
         {

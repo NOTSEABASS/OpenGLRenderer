@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <camera.h>
-#include <instance_util.h>
+#include <singleton_util.h>
 #include <renderer_window.h>
 
 class InputInfo : public Singleton<InputInfo>

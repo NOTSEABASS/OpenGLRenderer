@@ -21,11 +21,14 @@ add_executable(${PROJECT_NAME}  src/glad.c
                                 src/attributes.cpp
                                 src/file_system.cpp
                                 src/renderer_ui.cpp
+                                src/postprocess.cpp
                                 src/scene_object.cpp
                                 src/render_queue.cpp
+                                src/render_texture.cpp
                                 src/editor_content.cpp
+                                src/editor_settings.cpp
                                 src/renderer_window.cpp 
-                                src/input_management.cpp 
+                                src/input_management.cpp
                                 thirdparty/imgui/backends/imgui_impl_glfw.cpp
                                 thirdparty/imgui/backends/imgui_impl_opengl3.cpp
                                 thirdparty/imgui/imgui.cpp
