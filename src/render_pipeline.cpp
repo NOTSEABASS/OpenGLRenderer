@@ -1,4 +1,4 @@
-#include <render_queue.h>
+#include <render_pipeline.h>
 #include <scene_object.h>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -11,11 +11,12 @@
 #include <editor_settings.h>
 #include <model.h>
 #include <shader.h>
+#include <glm/gtx/matrix_decompose.hpp>
 
-void RenderQueue::EnqueueRenderQueue(SceneModel *model)     { ModelQueueForRender.insert({model->id, model});   }
-void RenderQueue::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRender.erase(id);                    }
+void RenderPipeline::EnqueueRenderQueue(SceneModel *model)     { ModelQueueForRender.insert({model->id, model});   }
+void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRender.erase(id);                    }
 
-SceneModel *RenderQueue::GetRenderModel(unsigned int id)
+SceneModel *RenderPipeline::GetRenderModel(unsigned int id)
 {
     if (ModelQueueForRender.find(id) != ModelQueueForRender.end())
     {
@@ -33,7 +34,7 @@ SceneModel *RenderQueue::GetRenderModel(unsigned int id)
 * we need to sort models by distance to camera. 
 * All models is rendered without alpha clip or alpha blend now.
 *****************************************************************/
-void RenderQueue::Render(RendererWindow *window, Camera *camera)
+void RenderPipeline::Render(RendererWindow *window, Camera *camera)
 {
     // Pre Render Setting
     if (EditorSettings::UsePostProcess && window->postprocess != nullptr)
@@ -58,7 +59,6 @@ void RenderQueue::Render(RendererWindow *window, Camera *camera)
     glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
     glm::mat4 view = camera->GetViewMatrix();
 
-
     // Render Scene
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
     {
@@ -67,7 +67,7 @@ void RenderQueue::Render(RendererWindow *window, Camera *camera)
         SceneModel *sm = it->second;
         Material* mat = sm->meshRenderers[0]->material;
         Shader* shader;
-        if (EditorSettings::UsePolygonMode)
+        if (EditorSettings::UsePolygonMode || !mat->shader->IsValid())
         {
             shader = Shader::LoadedShaders["default.fs"];
         }
@@ -76,10 +76,6 @@ void RenderQueue::Render(RendererWindow *window, Camera *camera)
             shader = mat->shader;
         }
         shader->use();
-        shader->setMat4("projection", projection);
-        shader->setMat4("view", view);
-        shader->setVec3("viewPos", camera->Position);
-
         // Render the loaded model
         ATR_Transform *transform = sm->transform;
         glm::mat4 m = glm::mat4(1.0f);
@@ -88,9 +84,20 @@ void RenderQueue::Render(RendererWindow *window, Camera *camera)
         m = glm::rotate(m, glm::radians(transform->Rotation.g), glm::vec3(0, 1, 0));
         m = glm::rotate(m, glm::radians(transform->Rotation.b), glm::vec3(0, 0, 1));
         m = glm::scale(m, transform->Scale); // it's a bit too big for our scene, so scale it down
-        shader->setMat4("model", m);
+        shader->setMat4("model", m);                // M
+        shader->setMat4("view", view);              // V    
+        shader->setMat4("projection", projection);  // P
+        shader->setVec3("viewPos", camera->Position);
 
-        sm->DrawAllMeshRenderer();
+        glm::vec3 front;
+        front.x = cos(glm::radians(global_light->transform->Rotation.y)) * cos(glm::radians(global_light->transform->Rotation.x));
+        front.y = sin(glm::radians(global_light->transform->Rotation.x));
+        front.z = sin(glm::radians(global_light->transform->Rotation.y)) * cos(glm::radians(global_light->transform->Rotation.x));
+        front = glm::normalize(front);
+        shader->setVec3("lightDir", front);
+        glm::vec3 lightColor = global_light->GetLightColor();
+        shader->setVec3("lightColor", lightColor);
+        sm->DrawSceneModel();
     }
 
     // PostProcess

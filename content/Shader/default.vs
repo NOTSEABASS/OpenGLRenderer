@@ -9,7 +9,8 @@ out VS_OUT{
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-    vec3 LightPos;
+    vec3 LightDir;
+    vec3 LightColor;
     vec3 ViewPos;
     vec3 T;
     vec3 B;
@@ -22,6 +23,8 @@ uniform mat4 view;
 uniform mat4 projection;
 
 uniform vec3 viewPos;
+uniform vec3 lightDir;
+uniform vec3 lightColor;
 
 void main()
 {
@@ -36,7 +39,8 @@ void main()
     vs_out.T = T;
     vs_out.B = B;
     vs_out.N = N;
-    vs_out.LightPos = vec3(100,100,100);
+    vs_out.LightDir = lightDir;
+    vs_out.LightColor = lightColor;
     vs_out.ViewPos = viewPos;
     gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
 }

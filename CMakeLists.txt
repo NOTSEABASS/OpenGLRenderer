@@ -23,9 +23,9 @@ add_executable(${PROJECT_NAME}  src/glad.c
                                 src/renderer_ui.cpp
                                 src/postprocess.cpp
                                 src/scene_object.cpp
-                                src/render_queue.cpp
                                 src/render_texture.cpp
                                 src/editor_content.cpp
+                                src/render_pipeline.cpp
                                 src/editor_settings.cpp
                                 src/renderer_window.cpp 
                                 src/input_management.cpp

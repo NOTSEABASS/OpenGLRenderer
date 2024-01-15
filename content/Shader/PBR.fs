@@ -5,7 +5,8 @@ in VS_OUT{
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-    vec3 LightPos;
+    vec3 LightDir;
+    vec3 LightColor;
     vec3 ViewPos;
     vec3 T;
     vec3 B;
@@ -97,7 +98,7 @@ PBRLightingInfo CalculatePBRLighting(vec3 n, vec3 l, vec3 v, vec3 t, vec3 b,
     pbr.Kd = Kd;
     pbr.Ks = Ks;
     pbr.diffuse = lambert;
-    pbr.specular = saturate(cspec * specular * lightColor);
+    pbr.specular = cspec * specular * lightColor;
     pbr.ambient = ambient * albedo * ao;
     return pbr;
 }
@@ -116,8 +117,6 @@ vec3 GetPBRLightingResult(PBRLightingInfo PBR, float NdotL)
 
 void main()
 {    
-    vec3 lightColor = vec3(1, 1, 1);
-
     vec4 albedo = texture(albedo_map, fs_in.TexCoords);
     vec4 metallic = texture(metal_map, fs_in.TexCoords) * metalStrength;
     vec4 ao = texture(ao_map, fs_in.TexCoords) * aoStrength;
@@ -131,8 +130,8 @@ void main()
     vec3 worldTangent = normalize(vec3(fs_in.T));
     vec3 worldBitangent = normalize(vec3(fs_in.B));
     float ambientStrength = 0.2;
-    vec3 ambient = ambientStrength * lightColor * albedo.xyz;
-    vec3 lightDir = normalize(fs_in.LightPos - fs_in.FragPos);
+    vec3 ambient = ambientStrength * fs_in.LightColor * albedo.xyz;
+    vec3 lightDir = normalize(fs_in.LightDir);
     float NdotL = max(dot(normalWS, lightDir), 0.0);
     vec3 viewDir = normalize(fs_in.ViewPos - fs_in.FragPos);
     vec3 reflectDir = reflect(-lightDir, normalWS); 
@@ -140,7 +139,7 @@ void main()
 
 
     PBRLightingInfo PBR = CalculatePBRLighting(normalWS, lightDir, viewDir, worldTangent, worldBitangent, 
-                                                            specColor, color * albedo.xyz, lightColor, metallic.x, roughness.x, 
+                                                            specColor, color * albedo.xyz, fs_in.LightColor, metallic.x, roughness.x, 
                                                             ambient, ao.x);
     vec3 midres = GetPBRLightingResult(PBR, NdotL);
     float gamma = 2.2;

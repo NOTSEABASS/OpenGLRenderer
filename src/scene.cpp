@@ -6,13 +6,13 @@
 #include <shader.h>
 
 void Scene::RegisterSceneObject(SceneObject *object)            { scene_object_list.push_back(object);  }
-void Scene::RenderScene(RendererWindow *window, Camera *camera) { renderQueue.Render(window, camera);   }
+void Scene::RenderScene(RendererWindow *window, Camera *camera) { renderPipeline.Render(window, camera);   }
 
 void Scene::InstanceFromModel(Model *model, std::string name)
 {
     SceneModel *sceneModel = new SceneModel(model, name);
     RegisterSceneObject(sceneModel);
-    renderQueue.EnqueueRenderQueue(sceneModel);
+    renderPipeline.EnqueueRenderQueue(sceneModel);
 }
 
 void Scene::RemoveSceneObjectAtIndex(int index)
@@ -23,7 +23,7 @@ void Scene::RemoveSceneObjectAtIndex(int index)
     }
     auto it = scene_object_list.begin() + index;
     SceneObject* target_so = *it;
-    renderQueue.RemoveFromRenderQueue(target_so->id);
+    renderPipeline.RemoveFromRenderQueue(target_so->id);
     scene_object_list.erase(it);
     delete target_so;
 }

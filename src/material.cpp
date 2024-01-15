@@ -9,8 +9,6 @@ Material::Material(Shader *_shader) : shader(_shader)                   { id = c
 Material::~Material()                                                   { std::cout << "delete Material" << std::endl;          }
 ModelMaterial::~ModelMaterial()                                         { std::cout << "delete Model Material" << std::endl;    }
 PBRMaterial::~PBRMaterial()                                             { std::cout << "delete PBR Material" << std::endl;      }
-void ModelMaterial::Setup(std::vector<Texture2D *> default_textures)    { DefaultSetup(default_textures);                       }
-void PBRMaterial::Setup(std::vector<Texture2D *> default_textures)      { DefaultSetup(default_textures);                       }
 bool Material::IsValid()                                                { return shader != nullptr;                             }
 
 void Material::SetTexture(Texture2D **slot, Texture2D *new_tex)
@@ -76,6 +74,11 @@ ModelMaterial::ModelMaterial(Shader *_shader, Texture2D *_albedo) : Material::Ma
     material_variables.allColor.push_back(new MaterialSlot<float *>("color", color));
 }
 
+void ModelMaterial::Setup(std::vector<Texture2D *> default_textures)
+{ 
+    DefaultSetup(default_textures);
+}
+
 PBRMaterial::PBRMaterial(Shader *_shader) : Material::Material(_shader)
 {
     // Init all material variables
@@ -99,4 +102,9 @@ PBRMaterial::PBRMaterial(Shader *_shader) : Material::Material(_shader)
     material_variables.allFloat.push_back(new MaterialSlot<float *>("aoStrength", &ao_strength));
     material_variables.allFloat.push_back(new MaterialSlot<float *>("roughnessStrength", &roughness_strength));
     material_variables.allFloat.push_back(new MaterialSlot<float *>("metalStrength", &metal_strength));
+}
+
+void PBRMaterial::Setup(std::vector<Texture2D *> default_textures)
+{ 
+    DefaultSetup(default_textures);
 }

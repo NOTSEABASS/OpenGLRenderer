@@ -5,7 +5,8 @@ in VS_OUT{
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-    vec3 LightPos;
+    vec3 LightDir;
+    vec3 LightColor;
     vec3 ViewPos;
     vec3 T;
     vec3 B;
@@ -26,7 +27,6 @@ float LinearizeDepth(float depth)
 
 void main()
 {    
-    vec3 lightColor = vec3(1, 1, 1);
     vec3 objectColor = vec3(1, 1, 1);
     float specularStrength = 0.2;
 
@@ -36,10 +36,10 @@ void main()
 
     // ambient
     float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * lightColor * albedo.xyz;
+    vec3 ambient = ambientStrength * fs_in.LightColor * albedo.xyz;
   	
     // diffuse 
-    vec3 lightDir = normalize(fs_in.LightPos - fs_in.FragPos);
+    vec3 lightDir = normalize(fs_in.LightDir);
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = diff * albedo.xyz * color;
 
@@ -48,7 +48,7 @@ void main()
     vec3 reflectDir = reflect(-lightDir, normal); 
     vec3 halfwayDir = normalize(lightDir + viewDir); 
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 5);
-    vec3 specular = specularStrength * spec * lightColor;
+    vec3 specular = specularStrength * spec * fs_in.LightColor;
 
     FragColor = vec4((ambient + diffuse + specular) * objectColor,1.0);
     // FragColor = vec4(normal,1);

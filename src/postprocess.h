@@ -25,12 +25,13 @@ private:
 
     void InitPostProcess();
     void CreateFrameBuffer();
-    void CreateRenderBuffer();
 
 public:
     unsigned int    framebuffer     =   0;
-    RenderTexture *rt;
-    Shader *shader;
+    GLuint          depthMap;
+    RenderTexture   *rt;
+    Shader          *shader;
+
     PostProcess(RendererWindow window, Shader *_shader);
     ~PostProcess();
 

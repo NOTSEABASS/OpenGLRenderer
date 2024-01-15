@@ -61,24 +61,6 @@ public:
         // Use material shader
         material->Setup(textures);
 
-        switch (material->cullface)
-        {
-        case E_CULL_FACE::culloff:
-            glDisable(GL_CULL_FACE);
-            break;
-        case E_CULL_FACE::cullfront:
-            glEnable(GL_CULL_FACE);
-            glCullFace(GL_FRONT);
-            break;
-        case E_CULL_FACE::cullback:
-            glEnable(GL_CULL_FACE);
-            glCullFace(GL_BACK);
-            break;
-        default:
-            glEnable(GL_CULL_FACE);
-            break;
-        }
-
         // draw mesh
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
@@ -156,6 +138,24 @@ public:
     {
         if (material->IsValid() && mesh != nullptr)
         {
+            switch (material->cullface)
+            {
+            case E_CULL_FACE::culloff:
+                glDisable(GL_CULL_FACE);
+                break;
+            case E_CULL_FACE::cullfront:
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_FRONT);
+                break;
+            case E_CULL_FACE::cullback:
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);
+                break;
+            default:
+                glEnable(GL_CULL_FACE);
+                break;
+            }
+            
             if (EditorSettings::UsePolygonMode)
             {
                 // draw mesh

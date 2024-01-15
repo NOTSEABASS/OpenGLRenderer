@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <render_queue.h>
+#include <render_pipeline.h>
 class SceneObject;
 class RendererWindow;
 class Shader;
@@ -11,7 +11,7 @@ class Scene
 {
 public:
     std::vector<SceneObject *>  scene_object_list;
-    RenderQueue                 renderQueue;
+    RenderPipeline              renderPipeline;
 
 public:
     void RegisterSceneObject        (SceneObject *object                    );

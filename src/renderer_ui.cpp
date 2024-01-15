@@ -247,8 +247,7 @@ void renderer_ui::ImportShaderPanel(RendererWindow *window)
             std::string vert_path_s = vertex_path;
             std::string frag_path_s = frag_path;
             Shader *new_shader = new Shader(vert_path_s.c_str(), frag_path_s.c_str());
-            new_shader->LoadShader();
-            if (new_shader->ID == 0)
+            if (!new_shader->LoadShader())
             {
                 info = "Load failed";
             }
@@ -435,10 +434,17 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 
                 if (ImGui::Button("Remove"))
                 {
-                    selected = nullptr;
-                    selected_obj = -1;
-                    GC_Cache.push_back(n);
-                    ImGui::CloseCurrentPopup();
+                    if (!scene->scene_object_list[n]->IsEditor())
+                    {
+                        selected = nullptr;
+                        selected_obj = -1;
+                        GC_Cache.push_back(n);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    else
+                    {
+                        std::cout << "Editor Scene Object can not be deleted!" << std::endl;
+                    }
                 }
                 ImGui::EndPopup();
             }
@@ -583,7 +589,7 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
                         if (ImGui::Button("Remove"))
                         {
                             Shader *tmp = Shader::LoadedShaders[shader_names[n]];
-                            if (!tmp->is_editor)
+                            if (!tmp->IsEditor())
                             {
                                 selected_shader = -1;
                                 delete tmp;

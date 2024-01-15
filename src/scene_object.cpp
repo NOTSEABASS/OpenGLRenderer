@@ -5,17 +5,27 @@ unsigned int SceneObject::cur_id = 0;
 
 SceneObject::SceneObject()
 {
-    this->name = "object";
     id = cur_id++;
+    this->name = "object";
+    transform = new ATR_Transform();
 }
 
-SceneObject::SceneObject(std::string _name) : name(_name) { id = cur_id++; }
-SceneObject::~SceneObject() {}
-void SceneObject::RenderAttribute() {}
-
-SceneModel::SceneModel(Model *_model) : model(_model)
-{
+SceneObject::SceneObject(std::string _name, bool _is_editor) : name(_name), is_editor(_is_editor)
+{ 
+    id = cur_id++; 
     transform = new ATR_Transform();
+}
+
+SceneObject::~SceneObject() {}
+
+void SceneObject::RenderAttribute() 
+{
+    transform->UI_Implement();
+}
+
+SceneModel::SceneModel(Model *_model, bool _is_editor) : model(_model)
+{
+    is_editor = _is_editor;
     for (int i = 0; i < _model->meshes.size(); i++)
     {
         Material* material;
@@ -38,7 +48,7 @@ SceneModel::SceneModel(Model *_model) : model(_model)
     _model->refSceneModels.AddRef(this);
 }
 
-SceneModel::SceneModel(Model *_model, std::string _name) : SceneModel(_model) { name = _name; }
+SceneModel::SceneModel(Model *_model, std::string _name, bool _is_editor) : SceneModel(_model, _is_editor) { name = _name; }
 
 void SceneModel::OnModelRemoved()
 {
@@ -59,7 +69,7 @@ void SceneModel::RenderAttribute()
     }
 }
 
-void SceneModel::DrawAllMeshRenderer()
+void SceneModel::DrawSceneModel()
 {
     for (int i = 0; i < meshRenderers.size(); i++)
     {
@@ -82,3 +92,21 @@ SceneModel::~SceneModel()
     }
     delete transform;
 }
+
+SceneLight::SceneLight(std::string _name, bool _is_editor) : SceneObject(_name, _is_editor) 
+{
+    light = new ATR_Light(light_color);
+}
+
+glm::vec3 SceneLight::GetLightColor()
+{
+    return glm::vec3(light_color[0], light_color[1], light_color[2]);
+}
+
+void SceneLight::RenderAttribute()
+{
+    transform->UI_Implement();
+    light->UI_Implement();
+}
+
+SceneLight::~SceneLight() {}

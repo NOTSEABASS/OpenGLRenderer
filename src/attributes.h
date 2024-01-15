@@ -137,3 +137,14 @@ public:
 private:
     ATR_Material *atr_material;
 };
+
+class ATR_Light : Attribute
+{
+public:
+    ATR_Light(float *_value);
+    void UI_Implement()     override;
+    ~ATR_Light()    override = default;
+
+    float                           drag_speed = 0.1;
+    float                           *color;                           
+};

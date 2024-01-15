@@ -79,6 +79,10 @@ int main()
     PostProcess *postprocess = new PostProcess(main_window, screen_shader);
     main_window.postprocess = postprocess;
 
+    SceneLight global_light("Global Light", true);
+    scene.RegisterSceneObject(&global_light);
+    scene.renderPipeline.global_light = &global_light;
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(main_window.Window))
@@ -99,7 +103,7 @@ int main()
         }
         // render
         // ------
-        scene.renderQueue.clear_color = main_window.clear_color;
+        scene.renderPipeline.clear_color = main_window.clear_color;
         scene.RenderScene(&main_window, &camera);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

@@ -241,9 +241,17 @@ void ATR_MeshRenderer::UI_Implement()
         title = "Mesh Renderer##" + std::to_string(meshRenderer->mesh->VAO);
         meshInfo = "vertices: " + std::to_string(meshRenderer->mesh->vertices.size());
     }
-    if (ImGui::CollapsingHeader(title.c_str()))
+    if (ImGui::CollapsingHeader(title.c_str(), true))
     {
         ImGui::Text(meshInfo.c_str());
         atr_material->UI_Implement();
     }
+}
+
+ATR_Light::ATR_Light(float *_color) : color(_color) {}
+
+void ATR_Light::UI_Implement()
+{
+    ImGui::SeparatorText("Light Settings");
+    ImGui::ColorEdit3("Light Color", color);
 }

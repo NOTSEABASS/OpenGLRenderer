@@ -17,7 +17,6 @@ public:
     std::string fragmentPath;
     std::string name;
     static std::map<std::string, Shader *> LoadedShaders;
-    bool is_editor = false;
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
     Shader(std::filesystem::path _vertexPath, std::filesystem::path _fragmentPath, bool _is_editor = false) : is_editor(_is_editor)
@@ -52,19 +51,23 @@ public:
         LoadedShaders.erase(name);
     }
 
-    void Refresh()
+    bool IsValid() { return is_valid;   }
+    bool IsEditor(){ return is_editor;  }
+
+    bool Refresh()
     {
         std::cout << "Refresh Shader:"
                   << "[vert]" << vertexPath << "\n               [frag]" << fragmentPath << std::endl;
-        LoadShader(vertexPath.c_str(), fragmentPath.c_str());
+        return LoadShader(vertexPath.c_str(), fragmentPath.c_str());
     }
 
-    void LoadShader()
+    bool LoadShader()
     {
-        LoadShader(vertexPath.c_str(), fragmentPath.c_str());
+        is_valid = LoadShader(vertexPath.c_str(), fragmentPath.c_str());
+        return is_valid;
     }
 
-    void LoadShader(const char *vertexPath, const char *fragmentPath)
+    bool LoadShader(const char *vertexPath, const char *fragmentPath)
     {
         // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
@@ -93,6 +96,7 @@ public:
         catch (std::ifstream::failure &e)
         {
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+            return false;
         }
         const char *vShaderCode = vertexCode.c_str();
         const char *fShaderCode = fragmentCode.c_str();
@@ -124,6 +128,7 @@ public:
         std::string name_f = frag_str.substr(frag_str.find_last_of('/') + 1, frag_str.size());
         name = name_f;
         LoadedShaders.insert(std::map<std::string, Shader *>::value_type(name_f, this));
+        return true;
     }
     // activate the shader
     // ------------------------------------------------------------------------
@@ -224,4 +229,7 @@ private:
         std::cout << "Remove Shader: [vert]" << vertexPath << " [frag]" << fragmentPath << std::endl;
         glDeleteProgram(ID);
     }
+
+    bool is_valid = false;
+    bool is_editor = false;
 };
