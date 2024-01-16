@@ -2,70 +2,21 @@
 #include <render_texture.h>
 #include <renderer_window.h>
 
-PostProcess::PostProcess(RendererWindow window, Shader *_shader) : shader(_shader) 
+
+PostProcessManager::PostProcessManager(int screen_width, int screen_height)
 {
-    rt      = new RenderTexture(window.Width(), window.Height());
-    width   = rt->width;
-    height  = rt->height;
+    read_rt = new RenderTexture(screen_width, screen_height);
+    write_rt = new RenderTexture(screen_width, screen_height);
+    default_framebuffer_shader = new Shader (   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                                FileSystem::GetContentPath() / "Shader/framebuffer.fs",
+                                                true);
+    default_framebuffer_shader->LoadShader();
     InitPostProcess();
 }
 
-PostProcess::~PostProcess()
-{
-    glDeleteFramebuffers(1, &framebuffer);
-    glDeleteRenderbuffers(1, &rbo);
-    delete rt;
-}
+PostProcessManager::~PostProcessManager() {}
 
-void PostProcess::ResizeRenderArea(int x, int y)
-{
-    glDeleteFramebuffers(1, &framebuffer);
-    glDeleteRenderbuffers(1, &rbo);
-    delete rt;
-
-    rt      = new RenderTexture(x, y);
-    width   = rt->width;
-    height  = rt->height;
-    
-    CreateFrameBuffer();
-}
-
-/*******************************************************************
-* Create a frame buffer and bind RenderTexture and render buffer.
-********************************************************************/
-void PostProcess::CreateFrameBuffer()
-{
-    // Create depth map
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
-                width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // Create frame buffer
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-    // Bind color attatchment
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->color_buffer, 0);
-    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-
-    // Create and bind render buffer object (depth and stencil)
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo); 
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);  
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void PostProcess::InitPostProcess()
+void PostProcessManager::InitPostProcess()
 {
     // Screen quad VAO
     glGenVertexArrays(1, &quadVAO);
@@ -77,24 +28,95 @@ void PostProcess::InitPostProcess()
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
-    // Create frame buffer and render buffer
-    CreateFrameBuffer();
-
 }
 
-void PostProcess::DrawPostProcessResult()
+void PostProcessManager::ResizeRenderArea(int x, int y)
 {
-    // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+    delete read_rt;
+    delete write_rt;
+
+    read_rt = new RenderTexture(x, y);
+    write_rt = new RenderTexture(x, y);
+
+    for (auto postprocess : postprocess_queue)
+    {
+        postprocess->read_rt = read_rt;
+        postprocess->write_rt = write_rt;
+    }
+}
+
+PostProcess* PostProcessManager::CreatePostProcess(Shader * shader)
+{
+    return new PostProcess(read_rt, write_rt, shader);
+}
+
+void PostProcessManager::AddPostProcess(PostProcess* p)
+{
+    postprocess_queue.push_back(p);
+}
+
+void PostProcessManager::RemovePostProcess(PostProcess* p)
+{
+    postprocess_queue.remove(p);
+}
+
+void PostProcessManager::ExecutePostProcessQueue()
+{
+    for (auto postprocess : postprocess_queue)
+    {
+        postprocess->Execute(quadVAO);
+    }
+    
+    // Draw to default buffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // clear all relevant buffers
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
     glClear(GL_COLOR_BUFFER_BIT);
 
-    shader->use();
+    default_framebuffer_shader->use();
     glBindVertexArray(quadVAO);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-    glBindTexture(GL_TEXTURE_2D, rt->color_buffer);	// use the color attachment texture as the texture of the quad plane
+    glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);	// use the color attachment texture as the texture of the quad plane
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
+
+}
+
+PostProcess::PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader) : read_rt(_rrt), write_rt(_wrt), shader(_shader) 
+{
+}
+
+PostProcess::~PostProcess()
+{
+}
+
+void PostProcess::BeiginRender()
+{
+    write_rt->BindFrameBuffer();
+    // clear all relevant buffers
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void PostProcess::EndRender()
+{
+    write_rt->SetAsReadTarget();
+    read_rt->SetAsRenderTarget();
+    glBlitFramebuffer(0, 0, read_rt->width, read_rt->height, 0, 0, write_rt->width, write_rt->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Binds both READ and WRITE framebuffer to default framebuffer
+}
+
+void PostProcess::Execute(unsigned int quad)
+{
+    
+    BeiginRender();
+
+    shader->use();
+    glBindVertexArray(quad);
+    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+    glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);	// use the color attachment texture as the texture of the quad plane
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    EndRender();
 }

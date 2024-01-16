@@ -70,10 +70,30 @@ void RendererWindow::SetWindowSize(WindowSize size)
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     cur_window_size = size;
     glViewport(0, 0, size.width, size.height);
-    postprocess->ResizeRenderArea(size.width, size.height);
     glfwSetWindowSize(Window, size.width, size.height);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    BroadcastWindowSizeChanged();
 }
+
+void RendererWindow::AttatchObserver(IOnWindowSizeChanged* observer)
+{
+    observers.push_back(observer);
+}
+
+void RendererWindow::DetatchObserver(IOnWindowSizeChanged* observer)
+{
+    observers.remove(observer);
+}
+
+void RendererWindow::BroadcastWindowSizeChanged()
+{
+    for (auto o : observers)
+    {
+        o->OnWindowSizeChanged(cur_window_size.width, cur_window_size.height);
+    }
+}
+
+
 
 RendererWindow::RendererWindow(Camera *camera, std::string name) : render_camera(camera), window_name(name)
 {

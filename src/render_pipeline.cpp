@@ -16,6 +16,9 @@
 void RenderPipeline::EnqueueRenderQueue(SceneModel *model)     { ModelQueueForRender.insert({model->id, model});   }
 void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRender.erase(id);                    }
 
+RenderPipeline::RenderPipeline() {}
+RenderPipeline::~RenderPipeline() {}
+
 SceneModel *RenderPipeline::GetRenderModel(unsigned int id)
 {
     if (ModelQueueForRender.find(id) != ModelQueueForRender.end())
@@ -28,6 +31,11 @@ SceneModel *RenderPipeline::GetRenderModel(unsigned int id)
     }
 }
 
+void RenderPipeline::OnWindowSizeChanged(int width, int height)
+{
+    postprocess_manager->ResizeRenderArea(width, height);
+}
+
 /****************************************************************
 * Render order is decide by create order by now.
 * If there's a requirement to render model with alpha
@@ -37,9 +45,9 @@ SceneModel *RenderPipeline::GetRenderModel(unsigned int id)
 void RenderPipeline::Render(RendererWindow *window, Camera *camera)
 {
     // Pre Render Setting
-    if (EditorSettings::UsePostProcess && window->postprocess != nullptr)
+    if (EditorSettings::UsePostProcess && postprocess_manager != nullptr)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, window->postprocess->framebuffer);
+        postprocess_manager->read_rt->BindFrameBuffer();
     }
     glClearColor(clear_color[0],clear_color[1],clear_color[2],1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -89,20 +97,28 @@ void RenderPipeline::Render(RendererWindow *window, Camera *camera)
         shader->setMat4("projection", projection);  // P
         shader->setVec3("viewPos", camera->Position);
 
-        glm::vec3 front;
-        front.x = cos(glm::radians(global_light->transform->Rotation.y)) * cos(glm::radians(global_light->transform->Rotation.x));
-        front.y = sin(glm::radians(global_light->transform->Rotation.x));
-        front.z = sin(glm::radians(global_light->transform->Rotation.y)) * cos(glm::radians(global_light->transform->Rotation.x));
-        front = glm::normalize(front);
-        shader->setVec3("lightDir", front);
-        glm::vec3 lightColor = global_light->GetLightColor();
-        shader->setVec3("lightColor", lightColor);
+        if (global_light != nullptr)
+        {
+            glm::vec3 front;
+            front.x = cos(glm::radians(global_light->transform->Rotation.y)) * cos(glm::radians(global_light->transform->Rotation.x));
+            front.y = sin(glm::radians(global_light->transform->Rotation.x));
+            front.z = sin(glm::radians(global_light->transform->Rotation.y)) * cos(glm::radians(global_light->transform->Rotation.x));
+            front = glm::normalize(front);
+            shader->setVec3("lightDir", front);
+            glm::vec3 lightColor = global_light->GetLightColor();
+            shader->setVec3("lightColor", lightColor);
+        }
+        else
+        {
+            shader->setVec3("lightDir", glm::vec3(1, 1, 1));
+            shader->setVec3("lightColor", glm::vec3(1, 0, 0));
+        }
         sm->DrawSceneModel();
     }
 
     // PostProcess
-    if (EditorSettings::UsePostProcess && window->postprocess != nullptr)
+    if (EditorSettings::UsePostProcess && postprocess_manager != nullptr)
     {
-        window->postprocess->DrawPostProcessResult();
+        postprocess_manager->ExecutePostProcessQueue();
     }
 }

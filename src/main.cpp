@@ -65,23 +65,29 @@ int main()
     Shader *PBR_shader      = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
                                             FileSystem::GetContentPath() / "Shader/PBR.fs",
                                             true);
-    Shader *screen_shader   = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
-                                            FileSystem::GetContentPath() / "Shader/framebuffer.fs",
+    Shader *gamma_correcting_shader   = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                            FileSystem::GetContentPath() / "Shader/gamma_correcting_frame.fs",
+                                            true);
+
+    Shader *inverse_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                            FileSystem::GetContentPath() / "Shader/inverse_color.fs",
                                             true);
 
     default_shader->LoadShader();
     lighting_shader->LoadShader();
     model_shader->LoadShader();
     PBR_shader->LoadShader();
-    screen_shader->LoadShader();
+    gamma_correcting_shader->LoadShader();
+    inverse_shader->LoadShader();
 
     // Create a postprocess
-    PostProcess *postprocess = new PostProcess(main_window, screen_shader);
-    main_window.postprocess = postprocess;
+    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height());;
+    scene.render_pipeline.postprocess_manager = ppm;
+    ppm->AddPostProcess( ppm->CreatePostProcess( gamma_correcting_shader ));
+    // a post process for test
+    // ppm->AddPostProcess( ppm->CreatePostProcess( inverse_shader ));
 
-    SceneLight global_light("Global Light", true);
-    scene.RegisterSceneObject(&global_light);
-    scene.renderPipeline.global_light = &global_light;
+    main_window.AttatchObserver(&scene.render_pipeline);
 
     // render loop
     // -----------
@@ -103,7 +109,7 @@ int main()
         }
         // render
         // ------
-        scene.renderPipeline.clear_color = main_window.clear_color;
+        scene.render_pipeline.clear_color = main_window.clear_color;
         scene.RenderScene(&main_window, &camera);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

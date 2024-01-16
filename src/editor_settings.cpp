@@ -1,6 +1,6 @@
 #include <editor_settings.h>
 
-bool EditorSettings::UsePostProcess = false;
+bool EditorSettings::UsePostProcess = true;
 bool EditorSettings::UsePolygonMode = false;
 WindowSize EditorSettings::window_size_list[5] = {   WindowSize(800, 600),
                                                     WindowSize(1200, 900),

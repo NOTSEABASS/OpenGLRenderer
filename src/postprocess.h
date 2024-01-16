@@ -1,16 +1,37 @@
 #pragma once
 #include <glad/glad.h>
 #include <shader.h>
+#include <list>
+#include <singleton_util.h>
 
 class RenderTexture;
 class RendererWindow;
+class Shader;
 
 class PostProcess
 {
+public:
+    
+    RenderTexture   *read_rt;
+    RenderTexture   *write_rt;
+    Shader          *shader;
+
+    PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader);
+    ~PostProcess();
+
+    void BeiginRender();
+    void EndRender();
+
+    /******************************************
+    * Draw result of all post process,
+    * Should call after all post process node.
+    *******************************************/
+    void Execute(unsigned int quad);
+};
+
+class PostProcessManager
+{
 private:
-    int width;
-    int height;
-    unsigned int    rbo             =   0;
     unsigned int quadVAO, quadVBO;
     const float quadVertices[24] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
         // positions   // texCoords
@@ -22,31 +43,30 @@ private:
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
     };
+    std::list<PostProcess*> postprocess_queue;
 
     void InitPostProcess();
-    void CreateFrameBuffer();
 
 public:
-    unsigned int    framebuffer     =   0;
-    GLuint          depthMap;
-    RenderTexture   *rt;
-    Shader          *shader;
+    PostProcessManager(int screen_width, int screen_height);
+    ~PostProcessManager();
 
-    PostProcess(RendererWindow window, Shader *_shader);
-    ~PostProcess();
+    PostProcess* CreatePostProcess(Shader * shader);
 
-    /******************************************
-    * Draw result of all post process,
-    * Should call after all post process node.
-    *******************************************/
-    void DrawPostProcessResult();
-
-    /******************************************
+    void AddPostProcess(PostProcess* p);
+    void RemovePostProcess(PostProcess* p);
+    void ExecutePostProcessQueue();
+     /******************************************
     * Delete the origin rt and create a new one
     * to fit the given window size.
     * Should call after resizing the window.
     *******************************************/
     void ResizeRenderArea(int x, int y);
+    unsigned int GetRenderQuad() { return quadVAO; }
 
-
+    Shader* default_framebuffer_shader;
+    
+    RenderTexture   *read_rt;
+    RenderTexture   *write_rt;
 };
+

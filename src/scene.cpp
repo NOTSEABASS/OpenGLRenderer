@@ -5,14 +5,27 @@
 #include <scene.h>
 #include <shader.h>
 
-void Scene::RegisterSceneObject(SceneObject *object)            { scene_object_list.push_back(object);  }
-void Scene::RenderScene(RendererWindow *window, Camera *camera) { renderPipeline.Render(window, camera);   }
+Scene::Scene()
+{
+    // Create a default light
+    RegisterGlobalLight(new SceneLight("Global Light", true));
+}
+
+Scene::~Scene() {}
+void Scene::RegisterSceneObject(SceneObject *object)            { scene_object_list.push_back(object);     }
+void Scene::RenderScene(RendererWindow *window, Camera *camera) { render_pipeline.Render(window, camera);   }
+
+void Scene::RegisterGlobalLight( SceneLight *light)
+{
+    RegisterSceneObject(light);
+    render_pipeline.global_light = light;
+}
 
 void Scene::InstanceFromModel(Model *model, std::string name)
 {
-    SceneModel *sceneModel = new SceneModel(model, name);
-    RegisterSceneObject(sceneModel);
-    renderPipeline.EnqueueRenderQueue(sceneModel);
+    SceneModel *scene_model = new SceneModel(model, name);
+    RegisterSceneObject(scene_model);
+    render_pipeline.EnqueueRenderQueue(scene_model);
 }
 
 void Scene::RemoveSceneObjectAtIndex(int index)
@@ -23,7 +36,7 @@ void Scene::RemoveSceneObjectAtIndex(int index)
     }
     auto it = scene_object_list.begin() + index;
     SceneObject* target_so = *it;
-    renderPipeline.RemoveFromRenderQueue(target_so->id);
+    render_pipeline.RemoveFromRenderQueue(target_so->id);
     scene_object_list.erase(it);
     delete target_so;
 }
