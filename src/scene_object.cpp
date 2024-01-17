@@ -7,20 +7,20 @@ SceneObject::SceneObject()
 {
     id = cur_id++;
     this->name = "object";
-    transform = new ATR_Transform();
+    atr_transform = new ATR_Transform();
 }
 
 SceneObject::SceneObject(std::string _name, bool _is_editor) : name(_name), is_editor(_is_editor)
 { 
     id = cur_id++; 
-    transform = new ATR_Transform();
+    atr_transform = new ATR_Transform();
 }
 
 SceneObject::~SceneObject() {}
 
 void SceneObject::RenderAttribute() 
 {
-    transform->UI_Implement();
+    atr_transform->UI_Implement();
 }
 
 SceneModel::SceneModel(Model *_model, bool _is_editor) : model(_model)
@@ -62,7 +62,7 @@ void SceneModel::OnModelRemoved()
 
 void SceneModel::RenderAttribute()
 {
-    transform->UI_Implement();
+    atr_transform->UI_Implement();
     for (int i = 0; i < atr_meshRenderers.size(); i++)
     {
         atr_meshRenderers[i]->UI_Implement();
@@ -90,12 +90,13 @@ SceneModel::~SceneModel()
         atr_meshRenderers[i] = nullptr;
         meshRenderers[i] = nullptr;
     }
-    delete transform;
+    delete atr_transform;
 }
 
 SceneLight::SceneLight(std::string _name, bool _is_editor) : SceneObject(_name, _is_editor) 
 {
     light = new ATR_Light(light_color);
+    atr_transform->transform->Rotation = glm::vec3(0,45,0);
 }
 
 glm::vec3 SceneLight::GetLightColor()
@@ -105,7 +106,7 @@ glm::vec3 SceneLight::GetLightColor()
 
 void SceneLight::RenderAttribute()
 {
-    transform->UI_Implement();
+    atr_transform->UI_Implement();
     light->UI_Implement();
 }
 

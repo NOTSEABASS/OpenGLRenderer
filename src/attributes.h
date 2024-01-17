@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <transform.h>
 
 class MeshRenderer;
 class SceneModel;
@@ -24,13 +25,12 @@ public:
 class ATR_Transform : public Attribute
 {
 public:
-    glm::vec3 Position;
-    glm::vec3 Rotation; // Euler
-    glm::vec3 Scale;
+    Transform* transform;
 
 public:
     ATR_Transform();
     void UI_Implement() override;
+ 
     ~ATR_Transform()    override = default;
 };
 

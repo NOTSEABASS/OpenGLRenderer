@@ -22,7 +22,7 @@ public:
 
     std::string                 name;
     std::vector<SceneObject*>   children;
-    ATR_Transform               *transform;
+    ATR_Transform               *atr_transform;
     unsigned int                id;
 };
 

@@ -45,7 +45,7 @@ void RenderPipeline::OnWindowSizeChanged(int width, int height)
 void RenderPipeline::Render(RendererWindow *window, Camera *camera)
 {
     // Pre Render Setting
-    if (EditorSettings::UsePostProcess && postprocess_manager != nullptr)
+    if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
     {
         postprocess_manager->read_rt->BindFrameBuffer();
     }
@@ -85,13 +85,9 @@ void RenderPipeline::Render(RendererWindow *window, Camera *camera)
         }
         shader->use();
         // Render the loaded model
-        ATR_Transform *transform = sm->transform;
+        Transform *transform = sm->atr_transform->transform;
         glm::mat4 m = glm::mat4(1.0f);
-        m = glm::translate(m, transform->Position); // translate it down so it's at the center of the scene
-        m = glm::rotate(m, glm::radians(transform->Rotation.r), glm::vec3(1, 0, 0));
-        m = glm::rotate(m, glm::radians(transform->Rotation.g), glm::vec3(0, 1, 0));
-        m = glm::rotate(m, glm::radians(transform->Rotation.b), glm::vec3(0, 0, 1));
-        m = glm::scale(m, transform->Scale); // it's a bit too big for our scene, so scale it down
+        m = transform->GetTransformMatrix();
         shader->setMat4("model", m);                // M
         shader->setMat4("view", view);              // V    
         shader->setMat4("projection", projection);  // P
@@ -99,11 +95,7 @@ void RenderPipeline::Render(RendererWindow *window, Camera *camera)
 
         if (global_light != nullptr)
         {
-            glm::vec3 front;
-            front.x = cos(glm::radians(global_light->transform->Rotation.y)) * cos(glm::radians(global_light->transform->Rotation.x));
-            front.y = sin(glm::radians(global_light->transform->Rotation.x));
-            front.z = sin(glm::radians(global_light->transform->Rotation.y)) * cos(glm::radians(global_light->transform->Rotation.x));
-            front = glm::normalize(front);
+            glm::vec3 front = global_light->atr_transform->transform->GetFront();
             shader->setVec3("lightDir", front);
             glm::vec3 lightColor = global_light->GetLightColor();
             shader->setVec3("lightColor", lightColor);
@@ -117,7 +109,7 @@ void RenderPipeline::Render(RendererWindow *window, Camera *camera)
     }
 
     // PostProcess
-    if (EditorSettings::UsePostProcess && postprocess_manager != nullptr)
+    if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
     {
         postprocess_manager->ExecutePostProcessQueue();
     }

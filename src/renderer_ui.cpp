@@ -354,7 +354,7 @@ void renderer_ui::mainUI(RendererWindow *window)
                 {
                     if (EditorSettings::UsePolygonMode)
                     {
-                        EditorSettings::UsePostProcess = false;
+                        // EditorSettings::UsePostProcess = false;
                     }
                 }
                 if (!EditorSettings::UsePolygonMode)
