@@ -364,7 +364,7 @@ void renderer_ui::mainUI(RendererWindow *window)
                 static int window_size_idx = -1;
                 if (ImGui::BeginCombo("resolution",window->cur_window_size.to_string().c_str()))
                 {
-                    for (int n = 0; n < sizeof(EditorSettings::window_size_list) / sizeof(WindowSize); n++)
+                    for (int n = 0; n < EditorSettings::window_size_list.size() ; n++)
                     {
                         const bool is_selected = (window_size_idx == n);
                         if (ImGui::Selectable(EditorSettings::window_size_list[n].to_string().c_str(), is_selected))

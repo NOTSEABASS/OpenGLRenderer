@@ -70,8 +70,8 @@ void RenderPipeline::Render(RendererWindow *window, Camera *camera)
     // Render Scene
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
     {
-        // a SceneModel's meshes share one transform
-        // so we will set the model matrix only once while render a SceneModel
+        // A SceneModel's meshes share one transform.
+        // So the model matrix will only set once while render a SceneModel.
         SceneModel *sm = it->second;
         Material* mat = sm->meshRenderers[0]->material;
         Shader* shader;
@@ -111,6 +111,6 @@ void RenderPipeline::Render(RendererWindow *window, Camera *camera)
     // PostProcess
     if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
     {
-        postprocess_manager->ExecutePostProcessQueue();
+        postprocess_manager->ExecutePostProcessList();
     }
 }

@@ -43,7 +43,7 @@ private:
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
     };
-    std::list<PostProcess*> postprocess_queue;
+    std::list<PostProcess*> postprocess_list;
 
     void InitPostProcess();
 
@@ -55,8 +55,8 @@ public:
 
     void AddPostProcess(PostProcess* p);
     void RemovePostProcess(PostProcess* p);
-    void ExecutePostProcessQueue();
-     /******************************************
+    void ExecutePostProcessList();
+    /******************************************
     * Delete the origin rt and create a new one
     * to fit the given window size.
     * Should call after resizing the window.

@@ -26,8 +26,9 @@ float currentFrame  = 0.0f;     // 当前帧与上一帧的时间差
 float lastFrame     = 0.0f;     // 上一帧的时间
 float deltaTime     = 0.0f;
 
-// camera
+// Create camera
 Camera camera(glm::vec3(0.0f, 20.0f, 20.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -40);
+// Create scene
 Scene scene;
 
 int main()
@@ -37,6 +38,8 @@ int main()
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
 
+    // Load Resources
+    // ------------------------------------------------------------------------------------------------------------------------------
     Texture2D *normalTex    = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/normal.png", ETexType::RGBA, true);
     Texture2D *wallTex      = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/wall.jpg");
     Texture2D *whiteTex     = new Texture2D(FileSystem::FileSystem::GetContentPath() / "Textures/white.png", ETexType::SRGBA, true);
@@ -46,8 +49,7 @@ int main()
     EditorContent::editor_tex.insert({"folder_ico", folder_ico});
     EditorContent::editor_tex.insert({"file_ico", file_ico});
     EditorContent::editor_tex.insert({"default_tex", whiteTex});
-    // load models
-    // -----------
+
     Model *M_nanosuit   = new Model(FileSystem::FileSystem::GetContentPath() / "Models/nanosuit/nanosuit.obj");
     Model *M_bunny      = new Model(FileSystem::FileSystem::GetContentPath() / "Models/bunny.fbx");
     Model *M_sphere     = new Model(FileSystem::FileSystem::GetContentPath() / "Models/sphere.fbx");
@@ -80,16 +82,18 @@ int main()
     gamma_correcting_shader->LoadShader();
     inverse_shader->LoadShader();
 
-    // Create a postprocess
-    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height());;
+    // Create a post process manager
+    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height());
+    // Assign postprocess manager to scene's renderer pipeline
     scene.render_pipeline.postprocess_manager = ppm;
+    // Add a gamma correct post process
     ppm->AddPostProcess( ppm->CreatePostProcess( gamma_correcting_shader ));
-    // a post process for test
+    // Post process for test
     // ppm->AddPostProcess( ppm->CreatePostProcess( inverse_shader ));
 
     main_window.AttatchObserver(&scene.render_pipeline);
 
-    // render loop
+    // Render loop
     // -----------
     while (!glfwWindowShouldClose(main_window.Window))
     {
@@ -107,7 +111,7 @@ int main()
             camera.ProcessMouseMovement(InputInfo::GetInstance()->mouse_offset_x,
                                         InputInfo::GetInstance()->mouse_offset_y);
         }
-        // render
+        // Render
         // ------
         scene.render_pipeline.clear_color = main_window.clear_color;
         scene.RenderScene(&main_window, &camera);
@@ -121,10 +125,10 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        // Render UI
         main_window.imgui->RenderAll(&main_window, &scene);
-
-        // Rendering
         ImGui::Render();
+
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(main_window.Window);
     }

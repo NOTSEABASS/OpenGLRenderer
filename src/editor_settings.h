@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 struct WindowSize
 {
@@ -23,5 +24,5 @@ static class EditorSettings
 public:
     static bool UsePolygonMode;
     static bool UsePostProcess;
-    static WindowSize window_size_list[5];
+    static std::vector<WindowSize> window_size_list;
 };

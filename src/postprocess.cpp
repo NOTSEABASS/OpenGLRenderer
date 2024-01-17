@@ -38,7 +38,7 @@ void PostProcessManager::ResizeRenderArea(int x, int y)
     read_rt = new RenderTexture(x, y);
     write_rt = new RenderTexture(x, y);
 
-    for (auto postprocess : postprocess_queue)
+    for (auto postprocess : postprocess_list)
     {
         postprocess->read_rt = read_rt;
         postprocess->write_rt = write_rt;
@@ -52,17 +52,17 @@ PostProcess* PostProcessManager::CreatePostProcess(Shader * shader)
 
 void PostProcessManager::AddPostProcess(PostProcess* p)
 {
-    postprocess_queue.push_back(p);
+    postprocess_list.push_back(p);
 }
 
 void PostProcessManager::RemovePostProcess(PostProcess* p)
 {
-    postprocess_queue.remove(p);
+    postprocess_list.remove(p);
 }
 
-void PostProcessManager::ExecutePostProcessQueue()
+void PostProcessManager::ExecutePostProcessList()
 {
-    for (auto postprocess : postprocess_queue)
+    for (auto postprocess : postprocess_list)
     {
         postprocess->Execute(quadVAO);
     }
