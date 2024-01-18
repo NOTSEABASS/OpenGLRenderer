@@ -27,7 +27,7 @@ float lastFrame     = 0.0f;     // 上一帧的时间
 float deltaTime     = 0.0f;
 
 // Create camera
-Camera camera(glm::vec3(0.0f, 20.0f, 20.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -40);
+Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -40);
 // Create scene
 Scene scene;
 
@@ -59,8 +59,9 @@ int main()
     Shader *default_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
                                             FileSystem::GetContentPath() / "Shader/default.fs",
                                             true);
-    Shader *lighting_shader = new Shader(   FileSystem::GetContentPath() / "Shader/color.vs",
-                                            FileSystem::GetContentPath() / "Shader/color.fs");
+    Shader *color_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/color.vs",
+                                            FileSystem::GetContentPath() / "Shader/color.fs",
+                                            true);
     Shader *model_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
                                             FileSystem::GetContentPath() / "Shader/model.fs",
                                             true);
@@ -70,13 +71,12 @@ int main()
     Shader *gamma_correcting_shader   = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                             FileSystem::GetContentPath() / "Shader/gamma_correcting_frame.fs",
                                             true);
-
     Shader *inverse_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                             FileSystem::GetContentPath() / "Shader/inverse_color.fs",
                                             true);
 
     default_shader->LoadShader();
-    lighting_shader->LoadShader();
+    color_shader->LoadShader();
     model_shader->LoadShader();
     PBR_shader->LoadShader();
     gamma_correcting_shader->LoadShader();

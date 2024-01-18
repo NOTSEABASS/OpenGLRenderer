@@ -13,6 +13,8 @@
 #include <shader.h>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include <gizmos_line.h>
+
 void RenderPipeline::EnqueueRenderQueue(SceneModel *model)     { ModelQueueForRender.insert({model->id, model});   }
 void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRender.erase(id);                    }
 
@@ -106,6 +108,21 @@ void RenderPipeline::Render(RendererWindow *window, Camera *camera)
             shader->setVec3("lightColor", glm::vec3(1, 0, 0));
         }
         sm->DrawSceneModel();
+    }
+
+    Shader::LoadedShaders["color.fs"]->use();
+    Shader::LoadedShaders["color.fs"]->setMat4("view", view);
+    Shader::LoadedShaders["color.fs"]->setMat4("projection", projection);
+    Shader::LoadedShaders["color.fs"]->setVec3("color", glm::vec3(1,1,1));
+
+    // Draw a grid
+    const int length = 20;
+    for (int i = 0; i <= 20; i++)
+    {
+        GLine row(glm::vec3(-(length / 2), 0, -(length / 2) + i), glm::vec3((length / 2), 0, -(length / 2) + i));
+        row.Draw();
+        GLine col(glm::vec3(-(length / 2) + i, 0, -(length / 2)), glm::vec3(-(length / 2) + i, 0, (length / 2)));
+        col.Draw();
     }
 
     // PostProcess
