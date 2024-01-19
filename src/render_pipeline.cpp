@@ -18,7 +18,14 @@
 void RenderPipeline::EnqueueRenderQueue(SceneModel *model)     { ModelQueueForRender.insert({model->id, model});   }
 void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRender.erase(id);                    }
 
-RenderPipeline::RenderPipeline() {}
+RenderPipeline::RenderPipeline(RendererWindow* _window) : window(_window) 
+{
+    depthTexture = new DepthTexture(window->Width(), window->Height());
+    depth_shader = new Shader(  FileSystem::GetContentPath() / "Shader/depth.vs",
+                                FileSystem::GetContentPath() / "Shader/depth.fs",
+                                true);
+    depth_shader->LoadShader();
+}
 RenderPipeline::~RenderPipeline() {}
 
 SceneModel *RenderPipeline::GetRenderModel(unsigned int id)
@@ -36,40 +43,49 @@ SceneModel *RenderPipeline::GetRenderModel(unsigned int id)
 void RenderPipeline::OnWindowSizeChanged(int width, int height)
 {
     postprocess_manager->ResizeRenderArea(width, height);
+
+    // Resize depth texture as well
+    delete depthTexture;
+    depthTexture = new DepthTexture(width, height);
 }
 
-/****************************************************************
-* Render order is decide by create order by now.
-* If there's a requirement to render model with alpha
-* we need to sort models by distance to camera. 
-* All models is rendered without alpha clip or alpha blend now.
-*****************************************************************/
-void RenderPipeline::Render(RendererWindow *window, Camera *camera)
+void RenderPipeline::ProcessZPrePass()
 {
-    // Pre Render Setting
-    if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
-    {
-        postprocess_manager->read_rt->BindFrameBuffer();
-    }
-    glClearColor(clear_color[0],clear_color[1],clear_color[2],1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-
-    if (EditorSettings::UsePolygonMode)
-    {
-        glLineWidth(0.05);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
+    depthTexture->BindFrameBuffer();
+    glClear(GL_DEPTH_BUFFER_BIT);
     // view/projection transformations
+    Camera* camera = window->render_camera;
     glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
     glm::mat4 view = camera->GetViewMatrix();
 
-    // Render Scene
+    for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
+    {
+        SceneModel *sm = it->second;
+        depth_shader->use();
+        Transform *transform = sm->atr_transform->transform;
+        glm::mat4 m = glm::mat4(1.0f);
+        m = transform->GetTransformMatrix();
+        depth_shader->setMat4("model", m);                // M
+        depth_shader->setMat4("view", view);              // V    
+        depth_shader->setMat4("projection", projection);  // P
+
+        
+        for (int i = 0; i < sm->meshRenderers.size(); i++)
+        {
+            // Draw without any material
+            sm->meshRenderers[i]->PureDraw();
+        }
+    }
+}
+
+void RenderPipeline::ProcessColorPass()
+{
+    // view/projection transformations
+    Camera* camera = window->render_camera;
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
+    glm::mat4 view = camera->GetViewMatrix();
+    // Render Scene (Color Pass)
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
     {
         // A SceneModel's meshes share one transform.
@@ -109,21 +125,68 @@ void RenderPipeline::Render(RendererWindow *window, Camera *camera)
         }
         sm->DrawSceneModel();
     }
+}
 
+void RenderPipeline::RenderGizmos()
+{
+    Camera* camera = window->render_camera;
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
+    glm::mat4 view = camera->GetViewMatrix();
     Shader::LoadedShaders["color.fs"]->use();
     Shader::LoadedShaders["color.fs"]->setMat4("view", view);
     Shader::LoadedShaders["color.fs"]->setMat4("projection", projection);
     Shader::LoadedShaders["color.fs"]->setVec3("color", glm::vec3(1,1,1));
 
     // Draw a grid
-    const int length = 20;
-    for (int i = 0; i <= 20; i++)
+    const int   n_grid      = 10;
+    const float interval    = 2;
+    for (int i = 0; i <= n_grid; i++)
     {
-        GLine row(glm::vec3(-(length / 2), 0, -(length / 2) + i), glm::vec3((length / 2), 0, -(length / 2) + i));
+        GLine row(glm::vec3(-(n_grid / 2) * interval, 0, (i - (n_grid / 2)) * interval), glm::vec3((n_grid / 2) * interval, 0, (i -(n_grid / 2)) * interval));
         row.Draw();
-        GLine col(glm::vec3(-(length / 2) + i, 0, -(length / 2)), glm::vec3(-(length / 2) + i, 0, (length / 2)));
+        GLine col(glm::vec3((i - (n_grid / 2)) * interval, 0, -(n_grid / 2) * interval), glm::vec3((i - (n_grid / 2)) * interval, 0, (n_grid / 2) * interval));
         col.Draw();
     }
+}
+
+/****************************************************************
+* Render order is decide by create order by now.
+* If there's a requirement to render model with alpha
+* we need to sort models by distance to camera. 
+* All models is rendered without alpha clip or alpha blend now.
+*****************************************************************/
+void RenderPipeline::Render()
+{
+    // Z-PrePass
+    ProcessZPrePass();
+    // Pre Render Setting
+    if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
+    {
+        postprocess_manager->read_rt->BindFrameBuffer();
+    }
+    else
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    glClearColor(clear_color[0],clear_color[1],clear_color[2],1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    if (EditorSettings::UsePolygonMode)
+    {
+        glLineWidth(0.05);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    // Draw color pass
+    ProcessColorPass();
+
+    // Draw Gizmos
+    RenderGizmos();
 
     // PostProcess
     if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)

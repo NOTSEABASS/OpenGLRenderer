@@ -2,11 +2,13 @@
 #include <glad/glad.h>
 #include <shader.h>
 #include <list>
-#include <singleton_util.h>
+#include <scene_object.h>
+#include <attributes.h>
 
 class RenderTexture;
 class RendererWindow;
 class Shader;
+class DepthTexture;
 
 class PostProcess
 {
@@ -15,8 +17,11 @@ public:
     RenderTexture   *read_rt;
     RenderTexture   *write_rt;
     Shader          *shader;
+    bool            enabled = true;
+    std::string     name;
+    ATR_PostProcessNode* atr_ppn;
 
-    PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader);
+    PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled = true);
     ~PostProcess();
 
     void BeiginRender();
@@ -29,7 +34,7 @@ public:
     void Execute(unsigned int quad);
 };
 
-class PostProcessManager
+class PostProcessManager : public SceneObject
 {
 private:
     unsigned int quadVAO, quadVBO;
@@ -44,14 +49,14 @@ private:
          1.0f,  1.0f,  1.0f, 1.0f
     };
     std::list<PostProcess*> postprocess_list;
-
+    ATR_PostProcessManager* atr_ppm;
     void InitPostProcess();
 
 public:
-    PostProcessManager(int screen_width, int screen_height);
+    PostProcessManager(int screen_width, int screen_height,  DepthTexture* _depthTexture);
     ~PostProcessManager();
 
-    PostProcess* CreatePostProcess(Shader * shader);
+    PostProcess* CreatePostProcess(Shader * shader, std::string _name, bool default_enabled = true);
 
     void AddPostProcess(PostProcess* p);
     void RemovePostProcess(PostProcess* p);
@@ -64,9 +69,13 @@ public:
     void ResizeRenderArea(int x, int y);
     unsigned int GetRenderQuad() { return quadVAO; }
 
+    void RenderAttribute() override;
+
     Shader* default_framebuffer_shader;
     
     RenderTexture   *read_rt;
     RenderTexture   *write_rt;
+
+    DepthTexture* depthTexture;
 };
 

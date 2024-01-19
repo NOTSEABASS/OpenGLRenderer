@@ -3,8 +3,12 @@
 #include <renderer_window.h>
 
 
-PostProcessManager::PostProcessManager(int screen_width, int screen_height)
+PostProcessManager::PostProcessManager(int screen_width, int screen_height, DepthTexture* _depthTexture) : depthTexture(_depthTexture)
 {
+    is_editor = true;
+    name = "post process manager";
+    atr_ppm = new ATR_PostProcessManager();
+
     read_rt = new RenderTexture(screen_width, screen_height);
     write_rt = new RenderTexture(screen_width, screen_height);
     default_framebuffer_shader = new Shader (   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
@@ -15,6 +19,16 @@ PostProcessManager::PostProcessManager(int screen_width, int screen_height)
 }
 
 PostProcessManager::~PostProcessManager() {}
+
+void PostProcessManager::RenderAttribute()
+{
+    atr_ppm->UI_Implement();
+
+    for (auto p : postprocess_list)
+    {
+        p->atr_ppn->UI_Implement();
+    }
+}
 
 void PostProcessManager::InitPostProcess()
 {
@@ -45,9 +59,9 @@ void PostProcessManager::ResizeRenderArea(int x, int y)
     }
 }
 
-PostProcess* PostProcessManager::CreatePostProcess(Shader * shader)
+PostProcess* PostProcessManager::CreatePostProcess(Shader * shader, std::string _name, bool default_enabled)
 {
-    return new PostProcess(read_rt, write_rt, shader);
+    return new PostProcess(read_rt, write_rt, shader, _name, default_enabled);
 }
 
 void PostProcessManager::AddPostProcess(PostProcess* p)
@@ -64,7 +78,10 @@ void PostProcessManager::ExecutePostProcessList()
 {
     for (auto postprocess : postprocess_list)
     {
-        postprocess->Execute(quadVAO);
+        if (postprocess->enabled)
+        {
+            postprocess->Execute(quadVAO);
+        }
     }
     
     // Draw to default buffer
@@ -82,12 +99,14 @@ void PostProcessManager::ExecutePostProcessList()
 
 }
 
-PostProcess::PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader) : read_rt(_rrt), write_rt(_wrt), shader(_shader) 
+PostProcess::PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled) : read_rt(_rrt), write_rt(_wrt), shader(_shader) , name(_name), enabled(_enabled)
 {
+    atr_ppn = new ATR_PostProcessNode(this);
 }
 
 PostProcess::~PostProcess()
 {
+    delete atr_ppn;
 }
 
 void PostProcess::BeiginRender()

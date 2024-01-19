@@ -4,12 +4,14 @@
 #include <model.h>
 #include <shader.h>
 #include <imgui/imgui.h>
+#include <postprocess.h>
 
-unsigned int ATR_Material::cur_id           = 0;
-unsigned int ATR_MaterialTexture::cur_id    = 0;
-unsigned int ATR_MaterialFloat::cur_id      = 0;
-unsigned int ATR_MaterialInt::cur_id        = 0;
-unsigned int ATR_MaterialColor::cur_id      = 0;
+unsigned int ATR_Material::cur_id           = 10000;
+unsigned int ATR_MaterialTexture::cur_id    = 20000;
+unsigned int ATR_MaterialFloat::cur_id      = 30000;
+unsigned int ATR_MaterialInt::cur_id        = 40000;
+unsigned int ATR_MaterialColor::cur_id      = 50000;
+unsigned int ATR_PostProcessNode::cur_id    = 60000;
 
 ATR_Transform::ATR_Transform()
 {
@@ -254,4 +256,26 @@ void ATR_Light::UI_Implement()
 {
     ImGui::SeparatorText("Light Settings");
     ImGui::ColorEdit3("Light Color", color);
+}
+
+ATR_PostProcessManager::ATR_PostProcessManager(){}
+ATR_PostProcessManager::~ATR_PostProcessManager() {}
+
+void ATR_PostProcessManager::UI_Implement()
+{
+    ImGui::SeparatorText("post process manager");
+    for (auto atr_p : atr_pps)
+    {
+        atr_p->UI_Implement();
+    }
+}
+
+ATR_PostProcessNode::ATR_PostProcessNode(PostProcess* _postprocess) : postprocess(_postprocess)
+{
+    id = cur_id++;
+}
+ATR_PostProcessNode::~ATR_PostProcessNode() {}
+void ATR_PostProcessNode::UI_Implement()
+{
+    ImGui::Checkbox((postprocess->name+ "##" + std::to_string(id)).c_str(), &postprocess->enabled);   
 }

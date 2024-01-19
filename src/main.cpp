@@ -28,8 +28,6 @@ float deltaTime     = 0.0f;
 
 // Create camera
 Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -40);
-// Create scene
-Scene scene;
 
 int main()
 {
@@ -37,6 +35,9 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
+
+    // Create scene
+    Scene* scene = new Scene(&main_window);
 
     // Load Resources
     // ------------------------------------------------------------------------------------------------------------------------------
@@ -74,6 +75,9 @@ int main()
     Shader *inverse_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                             FileSystem::GetContentPath() / "Shader/inverse_color.fs",
                                             true);
+    Shader *blur_shader     = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                            FileSystem::GetContentPath() / "Shader/blur.fs",
+                                            true);
 
     default_shader->LoadShader();
     color_shader->LoadShader();
@@ -81,17 +85,20 @@ int main()
     PBR_shader->LoadShader();
     gamma_correcting_shader->LoadShader();
     inverse_shader->LoadShader();
+    blur_shader->LoadShader();
 
     // Create a post process manager
-    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height());
+    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depthTexture);
+    scene->RegisterSceneObject(ppm);
     // Assign postprocess manager to scene's renderer pipeline
-    scene.render_pipeline.postprocess_manager = ppm;
+    scene->render_pipeline.postprocess_manager = ppm;
     // Add a gamma correct post process
-    ppm->AddPostProcess( ppm->CreatePostProcess( gamma_correcting_shader ));
+    ppm->AddPostProcess( ppm->CreatePostProcess( gamma_correcting_shader, "Gamma correction" ));
     // Post process for test
-    // ppm->AddPostProcess( ppm->CreatePostProcess( inverse_shader ));
+    ppm->AddPostProcess( ppm->CreatePostProcess( inverse_shader, "inverse", false));
+    ppm->AddPostProcess(ppm->CreatePostProcess( blur_shader, "Blur" ));
 
-    main_window.AttatchObserver(&scene.render_pipeline);
+    main_window.AttatchObserver(&scene->render_pipeline);
 
     // Render loop
     // -----------
@@ -113,8 +120,8 @@ int main()
         }
         // Render
         // ------
-        scene.render_pipeline.clear_color = main_window.clear_color;
-        scene.RenderScene(&main_window, &camera);
+        scene->render_pipeline.clear_color = main_window.clear_color;
+        scene->RenderScene();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // --------------------------------- ----------------------------------------------
@@ -126,7 +133,7 @@ int main()
         ImGui::NewFrame();
 
         // Render UI
-        main_window.imgui->RenderAll(&main_window, &scene);
+        main_window.imgui->RenderAll(&main_window, scene);
         ImGui::Render();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

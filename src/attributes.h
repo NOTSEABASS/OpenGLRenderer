@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <list>
 #include <transform.h>
 
 class MeshRenderer;
@@ -148,3 +149,29 @@ public:
     float                           drag_speed = 0.1;
     float                           *color;                           
 };
+
+class PostProcess;
+class ATR_PostProcessNode : public Attribute
+{
+public:
+    unsigned int id;
+    ATR_PostProcessNode(PostProcess* _postprocess);
+    void UI_Implement()         override;
+    ~ATR_PostProcessNode()      override;
+
+private:
+    static unsigned int cur_id;
+    PostProcess* postprocess;
+};
+
+class ATR_PostProcessManager : public Attribute
+{
+public:
+    ATR_PostProcessManager();
+    void UI_Implement()         override;
+    ~ATR_PostProcessManager()   override;
+
+private:
+    std::list<ATR_PostProcessNode*> atr_pps;
+};
+

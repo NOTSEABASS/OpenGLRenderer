@@ -20,13 +20,13 @@ void Material::SetTexture(Texture2D **slot, Texture2D *new_tex)
 
 void Material::DefaultSetup(std::vector<Texture2D *> default_textures)
 {
-    unsigned int tex_id = 0;
+    unsigned int gl_tex_id = 0;
     for (auto tex : material_variables.allTextures)
     {
-        glActiveTexture(GL_TEXTURE0 + tex_id);
-        glUniform1i(glGetUniformLocation(shader->ID, (tex->slot_name).c_str()), tex_id);
+        glActiveTexture(GL_TEXTURE0 + gl_tex_id);
+        glUniform1i(glGetUniformLocation(shader->ID, (tex->slot_name).c_str()), gl_tex_id);
         glBindTexture(GL_TEXTURE_2D, (*tex->variable)->id);
-        tex_id++;
+        gl_tex_id++;
     }
     shader->use();
     for (auto value : material_variables.allColor)

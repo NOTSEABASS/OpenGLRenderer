@@ -5,7 +5,7 @@
 #include <scene.h>
 #include <shader.h>
 
-Scene::Scene()
+Scene::Scene(RendererWindow *_window) : window(_window), render_pipeline(RenderPipeline(_window))
 {
     // Create a default light
     RegisterGlobalLight(new SceneLight("Global Light", true));
@@ -13,7 +13,7 @@ Scene::Scene()
 
 Scene::~Scene() {}
 void Scene::RegisterSceneObject(SceneObject *object)            { scene_object_list.push_back(object);     }
-void Scene::RenderScene(RendererWindow *window, Camera *camera) { render_pipeline.Render(window, camera);   }
+void Scene::RenderScene()                                       { render_pipeline.Render();   }
 
 void Scene::RegisterGlobalLight( SceneLight *light)
 {
