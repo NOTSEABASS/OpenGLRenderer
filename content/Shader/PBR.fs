@@ -12,7 +12,10 @@ in VS_OUT{
     vec3 T;
     vec3 B;
     vec3 N;
+    vec4 FragPosLightSpace;
 } fs_in;
+
+uniform sampler2D shadowMap;
 
 uniform sampler2D albedo_map;
 uniform sampler2D normal_map;
@@ -110,11 +113,29 @@ float LinearizeDepth(float depth)
     return (2.0 * near * far) / (far + near - z * (far - near));    
 }
 
-vec3 GetPBRLightingResult(PBRLightingInfo PBR, float NdotL)
+vec3 GetPBRLightingResult(PBRLightingInfo PBR, float NdotL, float shadow)
 {
-    return ((PBR.Kd) * PBR.diffuse + PBR.specular) * NdotL + PBR.ambient;
+    return ((PBR.Kd) * PBR.diffuse + PBR.specular) * NdotL * (1 - shadow) + PBR.ambient;
 }
 
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
+{
+    // 执行透视除法
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // 变换到[0,1]的范围
+    projCoords = projCoords * 0.5 + 0.5;
+    // 取得最近点的深度(使用[0,1]范围下的fragPosLight当坐标)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // 取得当前片段在光源视角下的深度
+    float currentDepth = projCoords.z;
+    // 检查当前片段是否在阴影中
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+
+    return shadow;
+}
 
 void main()
 {    
@@ -142,9 +163,9 @@ void main()
     PBRLightingInfo PBR = CalculatePBRLighting(normalWS, lightDir, viewDir, worldTangent, worldBitangent, 
                                                             specColor, color * albedo.xyz, fs_in.LightColor, metallic.x, roughness.x, 
                                                             ambient, ao.x);
-    vec3 midres = GetPBRLightingResult(PBR, NdotL);
-    FragColor = vec4(midres.rgb,1.0);
-
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normalWS, lightDir);
+    vec3 midres = GetPBRLightingResult(PBR, NdotL, shadow);
+    FragColor = vec4(midres.rgb, 1.0);
     float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     if(brightness > 1.0)
         BrightColor = vec4(FragColor.rgb, 1.0);

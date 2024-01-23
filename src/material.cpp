@@ -23,8 +23,8 @@ void Material::DefaultSetup(std::vector<Texture2D *> default_textures)
     unsigned int gl_tex_id = 0;
     for (auto tex : material_variables.allTextures)
     {
-        glActiveTexture(GL_TEXTURE0 + gl_tex_id);
-        glUniform1i(glGetUniformLocation(shader->ID, (tex->slot_name).c_str()), gl_tex_id);
+        glActiveTexture(GL_TEXTURE1 + gl_tex_id);
+        glUniform1i(glGetUniformLocation(shader->ID, (tex->slot_name).c_str()), 1 + gl_tex_id);
         glBindTexture(GL_TEXTURE_2D, (*tex->variable)->id);
         gl_tex_id++;
     }

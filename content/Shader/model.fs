@@ -11,6 +11,7 @@ in VS_OUT{
     vec3 T;
     vec3 B;
     vec3 N;
+    vec4 FragPosLightSpace;
 } fs_in;
 
 uniform sampler2D albedo_map;

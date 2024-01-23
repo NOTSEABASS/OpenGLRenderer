@@ -96,7 +96,8 @@ SceneModel::~SceneModel()
 SceneLight::SceneLight(std::string _name, bool _is_editor) : SceneObject(_name, _is_editor) 
 {
     light = new ATR_Light(light_color);
-    atr_transform->transform->SetRotation(0, 45, 0);
+    atr_transform->transform->SetPosition(0,20,0);
+    atr_transform->transform->SetRotation(-60, 45, 0);
 }
 
 glm::vec3 SceneLight::GetLightColor()

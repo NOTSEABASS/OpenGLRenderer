@@ -15,12 +15,16 @@ out VS_OUT{
     vec3 T;
     vec3 B;
     vec3 N;
+    vec4 FragPosLightSpace;
 } vs_out;
 
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 light_view;
+uniform mat4 light_projection;
+
 
 uniform vec3 viewPos;
 uniform vec3 lightDir;
@@ -42,5 +46,6 @@ void main()
     vs_out.LightDir = lightDir;
     vs_out.LightColor = lightColor;
     vs_out.ViewPos = viewPos;
+    vs_out.FragPosLightSpace = light_projection * light_view * vec4(vs_out.FragPos, 1.0);
     gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
 }

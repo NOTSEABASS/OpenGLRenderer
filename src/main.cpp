@@ -31,7 +31,7 @@ Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -
 
 int main()
 {
-    RendererWindow main_window(&camera, "Renderer", WindowSize(window_width, window_height));
+    RendererWindow main_window(&camera, "Renderer-shadow pass", WindowSize(window_width, window_height));
     // Create scene
     Scene* scene = new Scene(&main_window);
     main_window.AttatchObserver(&scene->render_pipeline);
@@ -85,7 +85,7 @@ int main()
     blur_shader->LoadShader();
 
     // Create a post process manager
-    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depthTexture);
+    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depth_texture);
     scene->RegisterSceneObject(ppm);
     // Assign postprocess manager to scene's renderer pipeline
     scene->render_pipeline.postprocess_manager = ppm;

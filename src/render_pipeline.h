@@ -26,7 +26,8 @@ public:
     float *clear_color;
     SceneLight* global_light;
     PostProcessManager *postprocess_manager = nullptr;
-    DepthTexture* depthTexture;
+    DepthTexture* depth_texture;
+    DepthTexture* shadow_map;
 
 private:
     std::map<unsigned int, SceneModel *> ModelQueueForRender;
@@ -34,6 +35,7 @@ private:
     Shader* depth_shader;
 
     void ProcessZPrePass        ();
+    void ProcessShadowPass      ();
     void ProcessColorPass       ();
     void RenderGizmos           ();
 
