@@ -24,33 +24,27 @@ void ATR_Transform::UI_Implement()
 {
     // position
     static float tmp_position[3];
-    tmp_position[0] = transform->Position.r;
-    tmp_position[1] = transform->Position.g;
-    tmp_position[2] = transform->Position.b;
+    tmp_position[0] = transform->Position().r;
+    tmp_position[1] = transform->Position().g;
+    tmp_position[2] = transform->Position().b;
     ImGui::DragFloat3("Position", tmp_position, 0.1f);
-    transform->Position.r = tmp_position[0];
-    transform->Position.g = tmp_position[1];
-    transform->Position.b = tmp_position[2];
+    transform->SetPosition(tmp_position[0], tmp_position[1], tmp_position[2]);
 
     // rotation
     static float tmp_rotation[3];
-    tmp_rotation[0] = transform->Rotation.r;
-    tmp_rotation[1] = transform->Rotation.g;
-    tmp_rotation[2] = transform->Rotation.b;
+    tmp_rotation[0] = transform->Rotation().r;
+    tmp_rotation[1] = transform->Rotation().g;
+    tmp_rotation[2] = transform->Rotation().b;
     ImGui::DragFloat3("Rotation", tmp_rotation, 0.1f);
-    transform->Rotation.r = tmp_rotation[0];
-    transform->Rotation.g = tmp_rotation[1];
-    transform->Rotation.b = tmp_rotation[2];
+    transform->SetRotation(tmp_rotation[0], tmp_rotation[1], tmp_rotation[2]);
 
     // scale
     static float tmp_scale[3];
-    tmp_scale[0] = transform->Scale.r;
-    tmp_scale[1] = transform->Scale.g;
-    tmp_scale[2] = transform->Scale.b;
+    tmp_scale[0] = transform->Scale().r;
+    tmp_scale[1] = transform->Scale().g;
+    tmp_scale[2] = transform->Scale().b;
     ImGui::DragFloat3("Scale", tmp_scale, 0.1f);
-    transform->Scale.r = tmp_scale[0];
-    transform->Scale.g = tmp_scale[1];
-    transform->Scale.b = tmp_scale[2];
+    transform->SetScale(tmp_scale[0], tmp_scale[1], tmp_scale[2]);
 }
 
 ATR_MaterialTexture::ATR_MaterialTexture(std::string _name, Material *_material, Texture2D **_texture) : material(_material),

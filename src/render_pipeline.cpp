@@ -13,7 +13,7 @@
 #include <shader.h>
 #include <glm/gtx/matrix_decompose.hpp>
 
-#include <gizmos_line.h>
+#include <gizmos.h>
 
 void RenderPipeline::EnqueueRenderQueue(SceneModel *model)     { ModelQueueForRender.insert({model->id, model});   }
 void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRender.erase(id);                    }
@@ -130,22 +130,60 @@ void RenderPipeline::ProcessColorPass()
 void RenderPipeline::RenderGizmos()
 {
     Camera* camera = window->render_camera;
-    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
+    glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = camera->GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
     Shader::LoadedShaders["color.fs"]->use();
+    Shader::LoadedShaders["color.fs"]->setMat4("model", model);
     Shader::LoadedShaders["color.fs"]->setMat4("view", view);
     Shader::LoadedShaders["color.fs"]->setMat4("projection", projection);
-    Shader::LoadedShaders["color.fs"]->setVec3("color", glm::vec3(1,1,1));
 
     // Draw a grid
+    glLineWidth(0.01);
     const int   n_grid      = 10;
     const float interval    = 2;
     for (int i = 0; i <= n_grid; i++)
     {
         GLine row(glm::vec3(-(n_grid / 2) * interval, 0, (i - (n_grid / 2)) * interval), glm::vec3((n_grid / 2) * interval, 0, (i -(n_grid / 2)) * interval));
-        row.Draw();
+        row.DrawInGlobal();
         GLine col(glm::vec3((i - (n_grid / 2)) * interval, 0, -(n_grid / 2) * interval), glm::vec3((i - (n_grid / 2)) * interval, 0, (n_grid / 2) * interval));
-        col.Draw();
+        col.DrawInGlobal();
+    }
+
+    // Draw light debug cube
+    glLineWidth(2);
+    if (global_light->is_selected)
+    {
+        float r = 0.2;
+        GCube light_cube(r);
+        light_cube.color = global_light->GetLightColor();
+        light_cube.transform = *global_light->atr_transform->transform;
+        light_cube.Draw();
+
+        // GLine front(glm::vec3(0), glm::vec3(0,0,2));
+        GLine front(light_cube.transform.Position(), (light_cube.transform.Position() - glm::vec3(2) * light_cube.transform.GetFront()));
+        front.color = global_light->GetLightColor();
+        front.DrawInGlobal();
+    }
+
+    glLineWidth(4);
+    for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
+    {
+        SceneModel *sm = it->second;
+        if (sm->is_selected)
+        {
+            
+            Transform* transform = sm->atr_transform->transform; 
+            GLine front(transform->Position(), transform->Position() + transform->GetFront());
+            front.color = glm::vec3(0,0,1);
+            front.DrawInGlobal();
+            GLine right(transform->Position(), transform->Position() + transform->GetRight());
+            right.color = glm::vec3(1,0,0);
+            right.DrawInGlobal();
+            GLine up(transform->Position(), transform->Position() + transform->GetUp());
+            up.color = glm::vec3(0,1,0);
+            up.DrawInGlobal();
+        }
     }
 }
 

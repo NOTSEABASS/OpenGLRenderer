@@ -32,12 +32,9 @@ Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -
 int main()
 {
     RendererWindow main_window(&camera, "Renderer", WindowSize(window_width, window_height));
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_MULTISAMPLE);
-
     // Create scene
     Scene* scene = new Scene(&main_window);
+    main_window.AttatchObserver(&scene->render_pipeline);
 
     // Load Resources
     // ------------------------------------------------------------------------------------------------------------------------------
@@ -92,13 +89,16 @@ int main()
     scene->RegisterSceneObject(ppm);
     // Assign postprocess manager to scene's renderer pipeline
     scene->render_pipeline.postprocess_manager = ppm;
+
     // Add a gamma correct post process
     ppm->AddPostProcess( ppm->CreatePostProcess( gamma_correcting_shader, "Gamma correction" ));
     // Post process for test
     ppm->AddPostProcess( ppm->CreatePostProcess( inverse_shader, "inverse", false));
-    ppm->AddPostProcess(ppm->CreatePostProcess( blur_shader, "Blur" ));
+    ppm->AddPostProcess( ppm->CreatePostProcess( blur_shader, "Blur", false ));
 
-    main_window.AttatchObserver(&scene->render_pipeline);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_MULTISAMPLE);
 
     // Render loop
     // -----------

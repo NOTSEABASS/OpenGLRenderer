@@ -92,6 +92,9 @@ DepthTexture::~DepthTexture()
     glDeleteFramebuffers(1, &framebuffer);
 }
 
+/*******************************************************************
+* Create a frame buffer and bind DepthTexture.
+********************************************************************/
 void DepthTexture::CreateFrameBuffer(int _width, int _height)
 {
     // Create frame buffer

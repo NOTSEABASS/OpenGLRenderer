@@ -417,7 +417,9 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
             std::string item_name = scene->scene_object_list[n]->name + "##" + std::to_string(scene->scene_object_list[n]->id);
             const char *item = item_name.c_str();
             if (ImGui::Selectable(item, selected_obj == n))
+            {
                 selected_obj = n;
+            }
             if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
             {
                 selected_obj = n;
@@ -447,6 +449,10 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
                     }
                 }
                 ImGui::EndPopup();
+            }
+            else
+            {
+                scene->scene_object_list[n]->is_selected = (selected_obj == n);
             }
             ImGui::SetItemTooltip("Right-click to open popup");
         }

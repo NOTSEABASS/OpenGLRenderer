@@ -82,6 +82,7 @@ void PostProcessManager::ExecutePostProcessList()
         {
             postprocess->Execute(quadVAO);
         }
+        
     }
     
     // Draw to default buffer

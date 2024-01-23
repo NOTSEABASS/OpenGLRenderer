@@ -19,6 +19,7 @@ public:
     bool IsEditor() { return is_editor; }
     virtual void RenderAttribute();
     virtual ~SceneObject();
+    bool is_selected = false;
 
     std::string                 name;
     std::vector<SceneObject*>   children;
