@@ -12,6 +12,11 @@ public:
     } line;
     glm::vec3 color = glm::vec3(1, 1, 1);
     GLine() {}
+    ~GLine() 
+    {
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+    }
 
     GLine(glm::vec3 start, glm::vec3 end)
     {
@@ -81,6 +86,8 @@ public:
         line[10] = GLine(C, G);
         line[11] = GLine(D, H);
     }
+
+    ~GCube() { }
 
     void Draw()
     {

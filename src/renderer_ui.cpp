@@ -322,10 +322,10 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     ImGuiWindowFlags window_flags = 0;
-    bool *p_open = new bool(true);
+    static bool p_open = true;
     window_flags |= ImGuiWindowFlags_MenuBar;
     {
-        ImGui::Begin("Main", p_open, window_flags);
+        ImGui::Begin("Main", &p_open, window_flags);
 
         if (ImGui::BeginMenuBar())
         {
