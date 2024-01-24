@@ -23,6 +23,12 @@ public:
     void Render                 ();
     void OnWindowSizeChanged    (int width, int height                  ) override;
 
+    struct ShadowMapSetting
+    {
+        float shadow_map_size = 2048;
+        float shadow_distance = 50;
+    } shadow_map_setting;
+
     float *clear_color;
     SceneLight* global_light;
     PostProcessManager *postprocess_manager = nullptr;

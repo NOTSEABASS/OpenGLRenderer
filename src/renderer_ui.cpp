@@ -32,7 +32,7 @@ void renderer_ui::setup(GLFWwindow *window)
 
 void renderer_ui::RenderAll(RendererWindow *window, Scene *scene)
 {
-    mainUI(window);
+    mainUI(window, scene);
     resourceUI(window, scene);
     sceneUI(window, scene);
     detailUI(window, scene);
@@ -315,7 +315,7 @@ void renderer_ui::ImportTexturePanel(RendererWindow *window)
 /*********************
 * Main Panel
 **********************/
-void renderer_ui::mainUI(RendererWindow *window)
+void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
 {
     int width = window->Width() / 8 > 200 ? window->Width() / 8 : 200;
     int height = window->Height() / 12 > 80 ? window->Width() / 12 : 80;
@@ -348,19 +348,8 @@ void renderer_ui::mainUI(RendererWindow *window)
             }
             if (ImGui::BeginMenu("Options"))
             {
+                ImGui::SeparatorText("General Setting");
                 ImGui::SliderFloat("Camera Speed", &window->render_camera->MovementSpeed, 0.0f, 20.0f);
-                ImGui::ColorEdit3("clear color", (float *)window->clear_color); // Edit 3 floats representing a color
-                if(ImGui::Checkbox("Use PolygonMode", &EditorSettings::UsePolygonMode))
-                {
-                    if (EditorSettings::UsePolygonMode)
-                    {
-                        // EditorSettings::UsePostProcess = false;
-                    }
-                }
-                if (!EditorSettings::UsePolygonMode)
-                {
-                    ImGui::Checkbox("Use PostProcess", &EditorSettings::UsePostProcess);
-                }
                 static int window_size_idx = -1;
                 if (ImGui::BeginCombo("resolution",window->cur_window_size.to_string().c_str()))
                 {
@@ -379,7 +368,16 @@ void renderer_ui::mainUI(RendererWindow *window)
                     }
                     ImGui::EndCombo();
                 }
-
+                ImGui::SeparatorText("Rendering Setting");
+                {
+                    ImGui::ColorEdit3("clear color", (float *)window->clear_color); // Edit 3 floats representing a color
+                    ImGui::Checkbox("Use PolygonMode", &EditorSettings::UsePolygonMode);
+                    if (!EditorSettings::UsePolygonMode)
+                    {
+                        ImGui::Checkbox("Use PostProcess", &EditorSettings::UsePostProcess);
+                    }
+                    ImGui::DragFloat("shadow distance", &scene->render_pipeline.shadow_map_setting.shadow_distance);
+                }
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();

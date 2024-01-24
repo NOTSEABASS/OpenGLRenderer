@@ -153,7 +153,7 @@ void main()
     vec3 worldBitangent = normalize(vec3(fs_in.B));
     float ambientStrength = 0.2;
     vec3 ambient = ambientStrength * fs_in.LightColor * albedo.xyz;
-    vec3 lightDir = normalize(fs_in.LightDir);
+    vec3 lightDir = normalize(-fs_in.LightDir);
     float NdotL = max(dot(normalWS, lightDir), 0.0);
     vec3 viewDir = normalize(fs_in.ViewPos - fs_in.FragPos);
     vec3 reflectDir = reflect(-lightDir, normalWS); 

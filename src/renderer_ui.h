@@ -16,7 +16,7 @@ public:
     ~renderer_ui();
     void setup              (GLFWwindow *window                     );
     void RenderAll          (RendererWindow *window, Scene *scene   );
-    void mainUI             (RendererWindow *window                 );
+    void mainUI             (RendererWindow *window, Scene* scene   );
     void resourceUI         (RendererWindow *window, Scene *scene   );
     void sceneUI            (RendererWindow *window, Scene* scene   );
     void detailUI           (RendererWindow *window, Scene *scene   );

@@ -21,7 +21,7 @@ void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRe
 RenderPipeline::RenderPipeline(RendererWindow* _window) : window(_window) 
 {
     depth_texture = new DepthTexture(window->Width(), window->Height());
-    shadow_map = new DepthTexture(1024, 1024);
+    shadow_map = new DepthTexture(shadow_map_setting.shadow_map_size, shadow_map_setting.shadow_map_size);
     depth_shader = new Shader(  FileSystem::GetContentPath() / "Shader/depth.vs",
                                 FileSystem::GetContentPath() / "Shader/depth.fs",
                                 true);
@@ -52,15 +52,17 @@ void RenderPipeline::OnWindowSizeChanged(int width, int height)
 
 void RenderPipeline::ProcessShadowPass()
 {
-    glViewport(0, 0, 1024, 1024);
+    glViewport(0, 0, shadow_map_setting.shadow_map_size, shadow_map_setting.shadow_map_size);
     glEnable(GL_DEPTH_TEST);
     shadow_map->BindFrameBuffer();
     glClear(GL_DEPTH_BUFFER_BIT);
     GLfloat near_plane = 1.0f, far_plane = 100.0f;
-    glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+    float sdm_size = shadow_map_setting.shadow_distance;
+    glm::mat4 light_projection = glm::ortho(-sdm_size, sdm_size, -sdm_size, sdm_size, near_plane, far_plane);
     Transform* light_transform = global_light->atr_transform->transform;
     // glm::mat4 light_view = glm::lookAt(light_transform->Position(), light_transform->Position() - light_transform->GetFront(), light_transform->Position() + light_transform->GetUp());
-    glm::mat4 light_view = glm::lookAt(light_transform->GetFront() * glm::vec3(20), glm::vec3(0,0,0), glm::vec3(0,1,0));
+    auto camera_pos = window->render_camera->Position;
+    glm::mat4 light_view = glm::lookAt(-light_transform->GetFront() * glm::vec3(50) + camera_pos, glm::vec3(0,0,0) + camera_pos, glm::vec3(0,1,0));
     glCullFace(GL_FRONT);
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
     {
@@ -123,10 +125,12 @@ void RenderPipeline::ProcessColorPass()
     glm::mat4 view = camera->GetViewMatrix();
 
     GLfloat near_plane = 1.0f, far_plane = 100.0f;
-    glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+    float sdm_size = shadow_map_setting.shadow_distance;
+    glm::mat4 light_projection = glm::ortho(-sdm_size, sdm_size, -sdm_size, sdm_size, near_plane, far_plane);
     Transform* light_transform = global_light->atr_transform->transform;
     // glm::mat4 light_view = glm::lookAt(light_transform->Position(), light_transform->Position() - light_transform->GetFront(), light_transform->Position() + light_transform->GetUp());
-    glm::mat4 light_view = glm::lookAt(light_transform->GetFront() * glm::vec3(20), glm::vec3(0,0,0), glm::vec3(0,1,0));
+    auto camera_pos = window->render_camera->Position;
+    glm::mat4 light_view = glm::lookAt(-light_transform->GetFront() * glm::vec3(50) + camera_pos, glm::vec3(0,0,0) + camera_pos, glm::vec3(0,1,0));
     // Render Scene (Color Pass)
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
     {
@@ -207,7 +211,7 @@ void RenderPipeline::RenderGizmos()
         light_cube.Draw();
 
         // GLine front(glm::vec3(0), glm::vec3(0,0,2));
-        GLine front(light_cube.transform.Position(), (light_cube.transform.Position() - glm::vec3(2) * light_cube.transform.GetFront()));
+        GLine front(light_cube.transform.Position(), (light_cube.transform.Position() + glm::vec3(2) * light_cube.transform.GetFront()));
         front.color = global_light->GetLightColor();
         front.DrawInGlobal();
     }
