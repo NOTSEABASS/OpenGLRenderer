@@ -50,6 +50,9 @@ void RenderPipeline::OnWindowSizeChanged(int width, int height)
     depth_texture = new DepthTexture(width, height);
 }
 
+/*********************
+* Shadow Pass
+**********************/
 void RenderPipeline::ProcessShadowPass()
 {
     glViewport(0, 0, shadow_map_setting.shadow_map_size, shadow_map_setting.shadow_map_size);
@@ -78,13 +81,19 @@ void RenderPipeline::ProcessShadowPass()
         
         for (int i = 0; i < sm->meshRenderers.size(); i++)
         {
-            // Draw without any material
-            sm->meshRenderers[i]->PureDraw();
+            if (sm->meshRenderers[i]->cast_shadow)
+            {
+                // Draw without any material
+                sm->meshRenderers[i]->PureDraw();
+            }
         }
     }
     glCullFace(GL_BACK);
 }
 
+/*********************
+* Z-Pre Pass
+**********************/
 void RenderPipeline::ProcessZPrePass()
 {
     glViewport(0, 0, window->Width(), window->Height());
@@ -116,6 +125,9 @@ void RenderPipeline::ProcessZPrePass()
     }
 }
 
+/*********************
+* Color Pass
+**********************/
 void RenderPipeline::ProcessColorPass()
 {
     glViewport(0, 0, window->Width(), window->Height());
@@ -177,8 +189,12 @@ void RenderPipeline::ProcessColorPass()
     }
 }
 
+/*********************
+* Render Gizmos
+**********************/
 void RenderPipeline::RenderGizmos()
 {
+    glDisable(GL_DEPTH_TEST);
     Camera* camera = window->render_camera;
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = camera->GetViewMatrix();
@@ -235,6 +251,7 @@ void RenderPipeline::RenderGizmos()
             up.DrawInGlobal();
         }
     }
+    glEnable(GL_DEPTH_TEST);
 }
 
 /****************************************************************
@@ -245,11 +262,12 @@ void RenderPipeline::RenderGizmos()
 *****************************************************************/
 void RenderPipeline::Render()
 {
+    // Draw shadow pass
+    ProcessShadowPass();
+
     // Z-PrePass
     ProcessZPrePass();
     
-    // Draw shadow pass
-    ProcessShadowPass();
     // Pre Render Setting
     if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
     {

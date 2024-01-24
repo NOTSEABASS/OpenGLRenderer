@@ -240,6 +240,9 @@ void ATR_MeshRenderer::UI_Implement()
     if (ImGui::CollapsingHeader(title.c_str(), true))
     {
         ImGui::Text(meshInfo.c_str());
+        ImGui::SeparatorText("Setting");
+        ImGui::Checkbox(("cast shadow##"+std::to_string(meshRenderer->mesh->VAO)).c_str(), &meshRenderer->cast_shadow);
+        ImGui::SeparatorText("Material");
         atr_material->UI_Implement();
     }
 }
