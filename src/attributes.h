@@ -134,9 +134,13 @@ public:
 
 
     MeshRenderer *meshRenderer;
+    unsigned int id;
 
 private:
     ATR_Material *atr_material;
+    int prev_mat = 1;
+    int cur_mat = 1;
+    static unsigned int cur_id;
 };
 
 class ATR_Light : Attribute

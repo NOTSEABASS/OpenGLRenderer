@@ -32,14 +32,14 @@ SceneModel::SceneModel(Model *_model, bool _is_editor) : model(_model)
         if (_model->meshes[i]->textures.size() > 0)
         {
             // material = new ModelMaterial(Shader::LoadedShaders["model.fs"], _model->meshes[i]->textures[0]);
-            material = new PBRMaterial(Shader::LoadedShaders["PBR.fs"]);
+            material = MaterialManager::CreateMaterialByType(PBR_MATERIAL);
             PBRMaterial* tmp = dynamic_cast<PBRMaterial*>(material);
             material->SetTexture(&tmp->albedo_map, _model->meshes[i]->textures[0]);
         }
         else
         {
             // material = new ModelMaterial(Shader::LoadedShaders["model.fs"]);
-            material = new PBRMaterial(Shader::LoadedShaders["PBR.fs"]);
+            material = MaterialManager::CreateMaterialByType(PBR_MATERIAL);
         }
         MeshRenderer* _meshRenderer = new MeshRenderer(material, _model->meshes[i]);
         atr_meshRenderers.push_back(new ATR_MeshRenderer(_meshRenderer));

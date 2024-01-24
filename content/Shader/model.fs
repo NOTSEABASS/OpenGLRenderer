@@ -14,21 +14,15 @@ in VS_OUT{
     vec4 FragPosLightSpace;
 } fs_in;
 
+uniform sampler2D shadowMap;
 uniform sampler2D albedo_map;
 uniform vec3 color;
 
 float near = 0.1; 
 float far  = 100.0; 
 
-float LinearizeDepth(float depth) 
-{
-    float z = depth * 2.0 - 1.0; // back to NDC 
-    return (2.0 * near * far) / (far + near - z * (far - near));    
-}
-
 void main()
 {    
-    vec3 objectColor = vec3(1, 1, 1);
     float specularStrength = 0.2;
 
 
@@ -40,7 +34,7 @@ void main()
     vec3 ambient = ambientStrength * fs_in.LightColor * albedo.xyz;
   	
     // diffuse 
-    vec3 lightDir = normalize(fs_in.LightDir);
+    vec3 lightDir = -normalize(fs_in.LightDir);
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = diff * albedo.xyz * color;
 
@@ -51,8 +45,5 @@ void main()
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 5);
     vec3 specular = specularStrength * spec * fs_in.LightColor;
 
-    FragColor = vec4((ambient + diffuse + specular) * objectColor,1.0);
-    // FragColor = vec4(normal,1);
-    // float depth = LinearizeDepth(gl_FragCoord.z) / far; // 为了演示除以 far
-    // FragColor = vec4(vec3(depth), 1.0);
+    FragColor = vec4((ambient + diffuse + specular),1.0);
 }

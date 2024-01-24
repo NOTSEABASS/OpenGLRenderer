@@ -147,6 +147,13 @@ public:
         delete material;
         material = nullptr;
     }
+
+    void SetMaterial(EMaterialType type)
+    {
+        delete material;
+        material = MaterialManager::CreateMaterialByType(type);
+    }
+
     void Draw()
     {
         if (material->IsValid() && mesh != nullptr)

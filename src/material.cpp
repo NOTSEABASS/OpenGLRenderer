@@ -2,10 +2,11 @@
 #include <texture.h>
 #include <Shader.h>
 #include <string>
+#include <file_system.h>
 
 unsigned int Material::cur_id = 0;
 
-Material::Material(Shader *_shader) : shader(_shader)                   { id = cur_id++;                                        }
+Material::Material()                                                    { id = cur_id++;                                        }
 Material::~Material()                                                   { std::cout << "delete Material" << std::endl;          }
 ModelMaterial::~ModelMaterial()                                         { std::cout << "delete Model Material" << std::endl;    }
 PBRMaterial::~PBRMaterial()                                             { std::cout << "delete PBR Material" << std::endl;      }
@@ -58,16 +59,38 @@ void Material::OnTextureRemoved(Texture2D *removed_texture)
     }
 }
 
-ModelMaterial::ModelMaterial(Shader *_shader) : Material::Material(_shader)
+Material* MaterialManager::CreateMaterialByType(EMaterialType type)
 {
+    switch (type)
+    {
+    case EMaterialType::MODEL_MATERIAL :
+        return new ModelMaterial();
+        break;
+    
+    case EMaterialType::PBR_MATERIAL :
+        return new PBRMaterial();
+        break;
+
+    default:
+        return new PBRMaterial();
+        break;
+    }
+}
+
+ModelMaterial::ModelMaterial() : Material()
+{
+    shader = Shader::LoadedShaders["model.fs"];
+
     albedo = EditorContent::editor_tex["default_tex"];
     material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("albedo", &albedo));
     albedo->textureRefs.AddRef(this);
     material_variables.allColor.push_back(new MaterialSlot<float *>("color", color));
 }
 
-ModelMaterial::ModelMaterial(Shader *_shader, Texture2D *_albedo) : Material::Material(_shader)
+ModelMaterial::ModelMaterial(Texture2D *_albedo) : Material::Material()
 {
+    shader = Shader::LoadedShaders["model.fs"];
+
     albedo = _albedo;
     albedo->textureRefs.AddRef(this);
     material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("albedo_map", &albedo));
@@ -79,8 +102,10 @@ void ModelMaterial::Setup(std::vector<Texture2D *> default_textures)
     DefaultSetup(default_textures);
 }
 
-PBRMaterial::PBRMaterial(Shader *_shader) : Material::Material(_shader)
+PBRMaterial::PBRMaterial() : Material::Material()
 {
+    shader = Shader::LoadedShaders["PBR.fs"];
+
     // Init all material variables
     albedo_map->textureRefs.AddRef(this);
     normal_map->textureRefs.AddRef(this);

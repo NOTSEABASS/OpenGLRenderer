@@ -12,6 +12,7 @@ unsigned int ATR_MaterialFloat::cur_id      = 30000;
 unsigned int ATR_MaterialInt::cur_id        = 40000;
 unsigned int ATR_MaterialColor::cur_id      = 50000;
 unsigned int ATR_PostProcessNode::cur_id    = 60000;
+unsigned int ATR_MeshRenderer::cur_id        = 60000;
 
 ATR_Transform::ATR_Transform()
 {
@@ -226,6 +227,7 @@ void ATR_Material::UI_Implement()
 ATR_MeshRenderer::ATR_MeshRenderer(MeshRenderer *_meshRenderer) : meshRenderer(_meshRenderer)
 {
     atr_material = new ATR_Material(_meshRenderer->material);
+    id = cur_id++;
 }
 
 void ATR_MeshRenderer::UI_Implement()
@@ -243,6 +245,18 @@ void ATR_MeshRenderer::UI_Implement()
         ImGui::SeparatorText("Setting");
         ImGui::Checkbox(("cast shadow##"+std::to_string(meshRenderer->mesh->VAO)).c_str(), &meshRenderer->cast_shadow);
         ImGui::SeparatorText("Material");
+
+        const char* material_types[2] = {"Model", "PBR"};
+        std::string item = "material##" + std::to_string(id);
+        ImGui::Combo(item.c_str(), &cur_mat, material_types, IM_ARRAYSIZE(material_types));
+        if (prev_mat != cur_mat)
+        {
+            meshRenderer->SetMaterial((EMaterialType)cur_mat);
+            delete atr_material;
+            atr_material = new ATR_Material(meshRenderer->material);
+        }
+        prev_mat = cur_mat;
+
         atr_material->UI_Implement();
     }
 }

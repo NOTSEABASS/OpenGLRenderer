@@ -76,6 +76,7 @@ void PostProcessManager::RemovePostProcess(PostProcess* p)
 
 void PostProcessManager::ExecutePostProcessList()
 {
+    glDisable(GL_CULL_FACE);
     for (auto postprocess : postprocess_list)
     {
         if (postprocess->enabled)

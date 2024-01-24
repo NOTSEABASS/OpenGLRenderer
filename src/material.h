@@ -4,6 +4,7 @@
 #include <string>
 #include <texture.h>
 #include <editor_content.h>
+#include <singleton_util.h>
 
 class Shader;
 
@@ -33,10 +34,22 @@ struct MaterialVariables
 	std::vector<MaterialSlot<float*>*> 			allColor;
 };
 
+enum EMaterialType
+{
+	MODEL_MATERIAL,
+	PBR_MATERIAL
+};
+
+class MaterialManager : public Singleton<MaterialManager>
+{
+public:
+	static Material* CreateMaterialByType(EMaterialType type);
+};
+
 class Material
 {
 public:
-	std::string name;
+	const std::string name = "Material Base";
 	unsigned int id;
 	Shader* shader;
 	E_CULL_FACE cullface = E_CULL_FACE::culloff;
@@ -47,7 +60,7 @@ private:
 	static unsigned int cur_id;
 
 public:
-	Material(Shader* _shader);
+	Material();
     virtual ~Material();
 	bool IsValid();
 	virtual void Setup(std::vector<Texture2D*> default_textures) = 0;
@@ -60,13 +73,14 @@ protected:
 class ModelMaterial : public Material
 {
 public:
+	const std::string name = "Model Material";
 	// Definations of material parameters:
 	float color[3] 		= { 1, 1, 1 };
 	Texture2D* albedo 	= EditorContent::editor_tex["default_tex"];
 
 public:
-	ModelMaterial(Shader* _shader);
-	ModelMaterial(Shader* _shader, Texture2D* albedo);
+	ModelMaterial();
+	ModelMaterial(Texture2D* albedo);
 	~ModelMaterial() 										override;
 	void Setup(std::vector<Texture2D*> default_textures) 	override;
 };
@@ -74,6 +88,7 @@ public:
 class PBRMaterial : public Material
 {
 public:
+	const std::string name = "PBR Material";
 	// Definations of material parameters:
 	Texture2D* albedo_map 			= EditorContent::editor_tex["default_tex"];
 	Texture2D* normal_map 			= EditorContent::editor_tex["default_normal_map"];
@@ -89,7 +104,7 @@ public:
     float metal_strength 			= 0;
 
 public:
-	PBRMaterial(Shader* _shader);
+	PBRMaterial();
     ~PBRMaterial() 											override;
 	void Setup(std::vector<Texture2D*> default_textures) 	override;
 };

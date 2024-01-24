@@ -76,6 +76,10 @@ int main()
                                             FileSystem::GetContentPath() / "Shader/blur.fs",
                                             true);
 
+    Shader *grid_shader     = new Shader(   FileSystem::GetContentPath() / "Shader/grid.vs",
+                                            FileSystem::GetContentPath() / "Shader/grid.fs",
+                                            true);
+
     default_shader->LoadShader();
     color_shader->LoadShader();
     model_shader->LoadShader();
@@ -83,6 +87,7 @@ int main()
     gamma_correcting_shader->LoadShader();
     inverse_shader->LoadShader();
     blur_shader->LoadShader();
+    grid_shader->LoadShader();
 
     // Create a post process manager
     PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depth_texture);

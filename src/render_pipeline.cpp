@@ -148,44 +148,54 @@ void RenderPipeline::ProcessColorPass()
     // Render Scene (Color Pass)
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
     {
-        // A SceneModel's meshes share one transform.
-        // So the model matrix will only set once while render a SceneModel.
         SceneModel *sm = it->second;
-        Material* mat = sm->meshRenderers[0]->material;
-        Shader* shader;
-        if (EditorSettings::UsePolygonMode || !mat->shader->IsValid())
+
+        Material* prev_mat = nullptr;
+        for (auto mr : sm->meshRenderers)
         {
-            shader = Shader::LoadedShaders["default.fs"];
-        }
-        else
-        {
-            shader = mat->shader;
-        }
-        shader->use();
-        // Render the loaded model
-        Transform *transform = sm->atr_transform->transform;
-        glm::mat4 m = glm::mat4(1.0f);
-        m = transform->GetTransformMatrix();
-        shader->setMat4("model", m);                // M
-        shader->setMat4("view", view);              // V    
-        shader->setMat4("projection", projection);  // P
-        shader->setVec3("viewPos", camera->Position);
-        shader->setMat4("light_view", light_view);
-        shader->setMat4("light_projection", light_projection);
-        glActiveTexture(GL_TEXTURE0);
-        glUniform1i(glGetUniformLocation(shader->ID, "shadowMap"), 0);
-        glBindTexture(GL_TEXTURE_2D, shadow_map->color_buffer);
-        if (global_light != nullptr)
-        {
-            glm::vec3 front = global_light->atr_transform->transform->GetFront();
-            shader->setVec3("lightDir", front);
-            glm::vec3 lightColor = global_light->GetLightColor();
-            shader->setVec3("lightColor", lightColor);
-        }
-        else
-        {
-            shader->setVec3("lightDir", glm::vec3(1, 1, 1));
-            shader->setVec3("lightColor", glm::vec3(1, 0, 0));
+            Material* mat = mr->material;
+            if (mat == prev_mat)
+            {
+                continue;
+            }
+            prev_mat = mat;
+            Shader* shader;
+            if (EditorSettings::UsePolygonMode || !mat->shader->IsValid())
+            {
+                shader = Shader::LoadedShaders["default.fs"];
+            }
+            else
+            {
+                shader = mat->shader;
+            }
+            shader->use();
+            // Render the loaded model
+            Transform *transform = sm->atr_transform->transform;
+            glm::mat4 m = glm::mat4(1.0f);
+            m = transform->GetTransformMatrix();
+            shader->setMat4("model", m);                // M
+            shader->setMat4("view", view);              // V    
+            shader->setMat4("projection", projection);  // P
+            shader->setVec3("viewPos", camera->Position);
+            shader->setMat4("light_view", light_view);
+            shader->setMat4("light_projection", light_projection);
+
+            glActiveTexture(GL_TEXTURE0);
+            glUniform1i(glGetUniformLocation(shader->ID, "shadowMap"), 0);
+            glBindTexture(GL_TEXTURE_2D, shadow_map->color_buffer);
+
+            if (global_light != nullptr)
+            {
+                glm::vec3 front = global_light->atr_transform->transform->GetFront();
+                shader->setVec3("lightDir", front);
+                glm::vec3 lightColor = global_light->GetLightColor();
+                shader->setVec3("lightColor", lightColor);
+            }
+            else
+            {
+                shader->setVec3("lightDir", glm::vec3(1, 1, 1));
+                shader->setVec3("lightColor", glm::vec3(1, 0, 0));
+            }
         }
         sm->DrawSceneModel();
     }
