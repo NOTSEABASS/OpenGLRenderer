@@ -368,6 +368,7 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
                     }
                     ImGui::EndCombo();
                 }
+                ImGui::Checkbox("Draw Gizmos", &EditorSettings::DrawGizmos);
                 ImGui::SeparatorText("Rendering Setting");
                 {
                     ImGui::ColorEdit3("clear color", (float *)window->clear_color); // Edit 3 floats representing a color

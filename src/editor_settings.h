@@ -24,5 +24,6 @@ static class EditorSettings
 public:
     static bool UsePolygonMode;
     static bool UsePostProcess;
+    static bool DrawGizmos;
     static std::vector<WindowSize> window_size_list;
 };

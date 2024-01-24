@@ -66,7 +66,8 @@ void RenderPipeline::ProcessShadowPass()
     // glm::mat4 light_view = glm::lookAt(light_transform->Position(), light_transform->Position() - light_transform->GetFront(), light_transform->Position() + light_transform->GetUp());
     auto camera_pos = window->render_camera->Position;
     glm::mat4 light_view = glm::lookAt(-light_transform->GetFront() * glm::vec3(50) + camera_pos, glm::vec3(0,0,0) + camera_pos, glm::vec3(0,1,0));
-    glCullFace(GL_FRONT);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_FRONT);
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
     {
         SceneModel *sm = it->second;
@@ -88,7 +89,8 @@ void RenderPipeline::ProcessShadowPass()
             }
         }
     }
-    glCullFace(GL_BACK);
+    // glDisable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
 }
 
 /*********************
@@ -204,34 +206,7 @@ void RenderPipeline::RenderGizmos()
     Shader::LoadedShaders["color.fs"]->setMat4("view", view);
     Shader::LoadedShaders["color.fs"]->setMat4("projection", projection);
 
-    // Draw a grid
-    glLineWidth(0.01);
-    const int   n_grid      = 10;
-    const float interval    = 2;
-    for (int i = 0; i <= n_grid; i++)
-    {
-        GLine row(glm::vec3(-(n_grid / 2) * interval, 0, (i - (n_grid / 2)) * interval), glm::vec3((n_grid / 2) * interval, 0, (i -(n_grid / 2)) * interval));
-        row.DrawInGlobal();
-        GLine col(glm::vec3((i - (n_grid / 2)) * interval, 0, -(n_grid / 2) * interval), glm::vec3((i - (n_grid / 2)) * interval, 0, (n_grid / 2) * interval));
-        col.DrawInGlobal();
-    }
-
-    // Draw light debug cube
-    glLineWidth(2);
-    if (global_light->is_selected)
-    {
-        float r = 0.2;
-        GCube light_cube(r);
-        light_cube.color = global_light->GetLightColor();
-        light_cube.transform = *global_light->atr_transform->transform;
-        light_cube.Draw();
-
-        // GLine front(glm::vec3(0), glm::vec3(0,0,2));
-        GLine front(light_cube.transform.Position(), (light_cube.transform.Position() + glm::vec3(2) * light_cube.transform.GetFront()));
-        front.color = global_light->GetLightColor();
-        front.DrawInGlobal();
-    }
-
+    // Draw coordinate axis
     glLineWidth(4);
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
     {
@@ -251,7 +226,37 @@ void RenderPipeline::RenderGizmos()
             up.DrawInGlobal();
         }
     }
+
+    // Draw light debug cube
+    glLineWidth(2);
+    if (global_light->is_selected)
+    {
+        float r = 0.2;
+        GCube light_cube(r);
+        light_cube.color = global_light->GetLightColor();
+        light_cube.transform = *global_light->atr_transform->transform;
+        light_cube.Draw();
+
+        // GLine front(glm::vec3(0), glm::vec3(0,0,2));
+        GLine front(light_cube.transform.Position(), (light_cube.transform.Position() + glm::vec3(2) * light_cube.transform.GetFront()));
+        front.color = global_light->GetLightColor();
+        front.DrawInGlobal();
+    }
+
+    // Draw a grid
     glEnable(GL_DEPTH_TEST);
+    glLineWidth(0.001);
+    const int   n_grid      = 10;
+    const float interval    = 2;
+    for (int i = 0; i <= n_grid; i++)
+    {
+        GLine row(glm::vec3(-(n_grid / 2) * interval, 0, (i - (n_grid / 2)) * interval), glm::vec3((n_grid / 2) * interval, 0, (i -(n_grid / 2)) * interval));
+        row.color = glm::vec3(0.2,0.2,0.2);
+        row.DrawInGlobal();
+        GLine col(glm::vec3((i - (n_grid / 2)) * interval, 0, -(n_grid / 2) * interval), glm::vec3((i - (n_grid / 2)) * interval, 0, (n_grid / 2) * interval));
+        col.color = glm::vec3(0.2,0.2,0.2);
+        col.DrawInGlobal();
+    }
 }
 
 /****************************************************************
@@ -295,7 +300,10 @@ void RenderPipeline::Render()
     ProcessColorPass();
 
     // Draw Gizmos
-    RenderGizmos();
+    if (EditorSettings::DrawGizmos)
+    {
+        RenderGizmos();
+    }
 
     // PostProcess
     if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)

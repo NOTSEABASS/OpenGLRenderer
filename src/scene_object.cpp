@@ -96,7 +96,7 @@ SceneModel::~SceneModel()
 SceneLight::SceneLight(std::string _name, bool _is_editor) : SceneObject(_name, _is_editor) 
 {
     light = new ATR_Light(light_color);
-    atr_transform->transform->SetPosition(0,20,0);
+    atr_transform->transform->SetPosition(0,10,0);
     atr_transform->transform->SetRotation(120, 0, 0);
 }
 
