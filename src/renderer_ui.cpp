@@ -349,7 +349,7 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
             if (ImGui::BeginMenu("Options"))
             {
                 ImGui::SeparatorText("General Setting");
-                ImGui::SliderFloat("Camera Speed", &window->render_camera->MovementSpeed, 0.0f, 20.0f);
+                ImGui::SliderFloat("Camera Speed", &window->render_camera->MovementSpeed, 0.0f, 50.0f);
                 static int window_size_idx = -1;
                 if (ImGui::BeginCombo("resolution",window->cur_window_size.to_string().c_str()))
                 {

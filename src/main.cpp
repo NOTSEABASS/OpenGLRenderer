@@ -100,6 +100,7 @@ int main()
     // Post process for test
     ppm->AddPostProcess( ppm->CreatePostProcess( inverse_shader, "inverse", false));
     ppm->AddPostProcess( ppm->CreatePostProcess( blur_shader, "Blur", false ));
+    // ppm->AddPostProcess( ppm->CreatePostProcess( grid_shader, "Grid", false ));
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);

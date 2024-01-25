@@ -59,7 +59,7 @@ void RenderPipeline::ProcessShadowPass()
     glEnable(GL_DEPTH_TEST);
     shadow_map->BindFrameBuffer();
     glClear(GL_DEPTH_BUFFER_BIT);
-    GLfloat near_plane = 1.0f, far_plane = 100.0f;
+    GLfloat near_plane = 1.0f, far_plane = 10000.0f;
     float sdm_size = shadow_map_setting.shadow_distance;
     glm::mat4 light_projection = glm::ortho(-sdm_size, sdm_size, -sdm_size, sdm_size, near_plane, far_plane);
     Transform* light_transform = global_light->atr_transform->transform;
@@ -104,7 +104,7 @@ void RenderPipeline::ProcessZPrePass()
     glClear(GL_DEPTH_BUFFER_BIT);
     // view/projection transformations
     Camera* camera = window->render_camera;
-    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 10000.0f);
     glm::mat4 view = camera->GetViewMatrix();
 
     for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
@@ -135,10 +135,10 @@ void RenderPipeline::ProcessColorPass()
     glViewport(0, 0, window->Width(), window->Height());
     // view/projection transformations
     Camera* camera = window->render_camera;
-    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 10000.0f);
     glm::mat4 view = camera->GetViewMatrix();
 
-    GLfloat near_plane = 1.0f, far_plane = 100.0f;
+    GLfloat near_plane = 1.0f, far_plane = 10000.0f;
     float sdm_size = shadow_map_setting.shadow_distance;
     glm::mat4 light_projection = glm::ortho(-sdm_size, sdm_size, -sdm_size, sdm_size, near_plane, far_plane);
     Transform* light_transform = global_light->atr_transform->transform;
@@ -210,7 +210,7 @@ void RenderPipeline::RenderGizmos()
     Camera* camera = window->render_camera;
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = camera->GetViewMatrix();
-    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 10000.0f);
     Shader::LoadedShaders["color.fs"]->use();
     Shader::LoadedShaders["color.fs"]->setMat4("model", model);
     Shader::LoadedShaders["color.fs"]->setMat4("view", view);
@@ -242,7 +242,7 @@ void RenderPipeline::RenderGizmos()
     if (global_light->is_selected)
     {
         float r = 0.2;
-        GCube light_cube(r);
+        GCube light_cube(0.2);
         light_cube.color = global_light->GetLightColor();
         light_cube.transform = *global_light->atr_transform->transform;
         light_cube.Draw();
@@ -255,18 +255,12 @@ void RenderPipeline::RenderGizmos()
 
     // Draw a grid
     glEnable(GL_DEPTH_TEST);
-    glLineWidth(0.001);
-    const int   n_grid      = 10;
-    const float interval    = 2;
-    for (int i = 0; i <= n_grid; i++)
-    {
-        GLine row(glm::vec3(-(n_grid / 2) * interval, 0, (i - (n_grid / 2)) * interval), glm::vec3((n_grid / 2) * interval, 0, (i -(n_grid / 2)) * interval));
-        row.color = glm::vec3(0.2,0.2,0.2);
-        row.DrawInGlobal();
-        GLine col(glm::vec3((i - (n_grid / 2)) * interval, 0, -(n_grid / 2) * interval), glm::vec3((i - (n_grid / 2)) * interval, 0, (n_grid / 2) * interval));
-        col.color = glm::vec3(0.2,0.2,0.2);
-        col.DrawInGlobal();
-    }
+    GGrid grid;
+    Shader::LoadedShaders["grid.fs"]->use();
+    Shader::LoadedShaders["grid.fs"]->setMat4("view", view);
+    Shader::LoadedShaders["grid.fs"]->setMat4("projection", projection);
+    Shader::LoadedShaders["grid.fs"]->setVec3("cameraPos", camera->Position);
+    grid.Draw();
 }
 
 /****************************************************************
@@ -282,7 +276,8 @@ void RenderPipeline::Render()
 
     // Z-PrePass
     ProcessZPrePass();
-    
+
+
     // Pre Render Setting
     if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
     {
@@ -305,19 +300,22 @@ void RenderPipeline::Render()
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-
-    // Draw color pass
-    ProcessColorPass();
-
+    
     // Draw Gizmos
     if (EditorSettings::DrawGizmos)
     {
         RenderGizmos();
     }
 
+    // Draw color pass
+    ProcessColorPass();
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // PostProcess
     if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
     {
         postprocess_manager->ExecutePostProcessList();
     }
+    glDisable(GL_BLEND);
 }
