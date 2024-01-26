@@ -1,8 +1,17 @@
 This is a tiny-renderer project written in c++ based on OpenGL
 
-![](/sample_gif_1.gif)
+<img src="/img/sample_gif_1.gif" style="zoom:50%;" />
 
-![](/sample_gif_2.gif)
+<img src="/img/sample_gif_2.gif" style="zoom:50%;" />
+
+## UpdateInfo
+Update 1.1.0
+- Add Infinite grid as gizmos
+- Add light debug cube
+- Add scene object coordinate axes
+- Add material choosing combo
+
+<img src="/img/grid.jpg" style="zoom: 50%;" />
 
 ## Build
 
@@ -19,8 +28,12 @@ cmake --build . --config Release/Debug
 tips: this project is based on openGL and Assimp, so you need to build them first
 
 ## Reference
+Render Engine:
 
 https://learnopengl.com
 
 https://learnopengl-cn.github.io
 
+Inifinite-grid:
+
+https://zhuanlan.zhihu.com/p/647926704

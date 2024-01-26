@@ -255,12 +255,15 @@ void RenderPipeline::RenderGizmos()
 
     // Draw a grid
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     GGrid grid;
     Shader::LoadedShaders["grid.fs"]->use();
     Shader::LoadedShaders["grid.fs"]->setMat4("view", view);
     Shader::LoadedShaders["grid.fs"]->setMat4("projection", projection);
     Shader::LoadedShaders["grid.fs"]->setVec3("cameraPos", camera->Position);
     grid.Draw();
+    glDisable(GL_BLEND);
 }
 
 /****************************************************************
@@ -310,12 +313,9 @@ void RenderPipeline::Render()
         RenderGizmos();
     }
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // PostProcess
     if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
     {
         postprocess_manager->ExecutePostProcessList();
     }
-    glDisable(GL_BLEND);
 }
