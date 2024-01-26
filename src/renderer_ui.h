@@ -33,6 +33,7 @@ private:
     bool showImportShaderPanel      = false;
     bool showImportTexturePanel     = false;
     bool showFileBrowser            = false;
+    bool showConsole                = false;
     std::filesystem::path *file_path;
     std::filesystem::path import_tex_path = FileSystem::GetContentPath();
     std::filesystem::path import_model_path = FileSystem::GetContentPath();

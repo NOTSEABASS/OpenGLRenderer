@@ -8,6 +8,7 @@
 #include <sstream>
 #include <iostream>
 #include <filesystem>
+#include <renderer_console.h>
 
 class Shader
 {
@@ -25,9 +26,7 @@ public:
         std::string frag_str = _fragmentPath.string();
         std::replace(vert_str.begin(), vert_str.end(), '\\', '/');
         std::replace(frag_str.begin(), frag_str.end(), '\\', '/');
-        std::cout << "Load Shader From: [vert]"
-                  << vert_str << "\n                  [frag]"
-                  << frag_str << std::endl;
+        RendererConsole::GetInstance()->AddLog("Load Shader From: [vert] %s\n                  [frag]%s", vert_str.c_str(), frag_str.c_str());
         vertexPath = vert_str;
         fragmentPath = frag_str;
     }
@@ -38,9 +37,7 @@ public:
         std::string frag_str = _fragmentPath;
         std::replace(vert_str.begin(), vert_str.end(), '\\', '/');
         std::replace(frag_str.begin(), frag_str.end(), '\\', '/');
-        std::cout << "Load Shader From: [vert]"
-                  << vert_str << "\n                  [frag]"
-                  << frag_str << std::endl;
+        RendererConsole::GetInstance()->AddLog("Load Shader From: [vert] %s\n                  [frag]%s", vert_str.c_str(), frag_str.c_str());
         vertexPath = vert_str;
         fragmentPath = frag_str;
     }
@@ -56,8 +53,7 @@ public:
 
     bool Refresh()
     {
-        std::cout << "Refresh Shader:"
-                  << "[vert]" << vertexPath << "\n               [frag]" << fragmentPath << std::endl;
+        RendererConsole::GetInstance()->AddLog("Refresh Shader: [vert] %s\n                  [frag]%s", vertexPath.c_str(), fragmentPath.c_str());
         return LoadShader(vertexPath.c_str(), fragmentPath.c_str());
     }
 
@@ -95,7 +91,7 @@ public:
         }
         catch (std::ifstream::failure &e)
         {
-            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+            RendererConsole::GetInstance()->AddLog("[error] SHADER: file not successfully read %s", e.what());
             return false;
         }
         const char *vShaderCode = vertexCode.c_str();
@@ -208,8 +204,7 @@ private:
             if (!success)
             {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
-                          << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                RendererConsole::GetInstance()->AddLog("[error] SHADER: shader compilation error of type %s\n %s\n -- --------------------------------------------------- -- ", type.c_str(), infoLog);
             }
         }
         else
@@ -218,15 +213,14 @@ private:
             if (!success)
             {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
-                          << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                RendererConsole::GetInstance()->AddLog("[error] SHADER: program link error %s\n %s\n -- --------------------------------------------------- -- ", type.c_str(), infoLog);
             }
         }
     }
 
     void DeleteShader()
     {
-        std::cout << "Remove Shader: [vert]" << vertexPath << " [frag]" << fragmentPath << std::endl;
+        RendererConsole::GetInstance()->AddLog("Remove Shader: [vert] %s [frag] %s", vertexPath.c_str(), fragmentPath.c_str());
         glDeleteProgram(ID);
     }
 

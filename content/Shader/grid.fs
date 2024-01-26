@@ -33,14 +33,6 @@ float computeDepth(vec3 pos) {
     return (clip_space_pos.z / clip_space_pos.w) * 0.5 + 0.5;
 }
 
-float LinearizeDepth(float depth) 
-{
-    float near = 0.1;
-    float far = 100;
-    float z = depth * 2.0 - 1.0; // back to NDC 
-    return (2.0 * near * far) / (far + near - z * (far - near));    
-}
-
 void main()
 {
     vec3 col = texture(screenTexture, TexCoords).rgb;

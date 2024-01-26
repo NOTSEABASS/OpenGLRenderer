@@ -7,6 +7,7 @@
 #include <iostream>
 #include <algorithm>
 #include <string>
+#include <renderer_console.h>
 
 std::map<std::string, Texture2D *> Texture2D::LoadedTextures;
 
@@ -42,7 +43,7 @@ Texture2D::~Texture2D()
 
 void Texture2D::DeleteTexture2D()
 {
-    std::cout << "Delete Texture: " << path << std::endl;
+    RendererConsole::GetInstance()->AddLog("Delete Texture: %s", path.c_str());
     for (auto it : textureRefs.references)
     {
         it->OnTextureRemoved(this);
@@ -110,7 +111,7 @@ bool Texture2D::LoadTexture2D(const char *path, ETexType type)
     }
     else
     {
-        std::cout << "Failed to load texture at: " << path_s.c_str() << std::endl;
+        RendererConsole::GetInstance()->AddLog("Failed to load texture at:  %s", path_s.c_str());
         stbi_image_free(data);
         return false;
     }

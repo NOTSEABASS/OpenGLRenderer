@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <render_texture.h>
 #include <iostream>
+#include <renderer_console.h>
 
 FrameBufferTexture::FrameBufferTexture(int _width, int _height) : width(_width), height(_height) {}
 FrameBufferTexture::~FrameBufferTexture() {}
@@ -35,12 +36,12 @@ RenderTexture::RenderTexture(int _width, int _height) : FrameBufferTexture(_widt
     glBindTexture(GL_TEXTURE_2D, 0);
 
     CreateFrameBuffer(_width, _height);
-    std::cout << "Create Render Texture: " << _width << "x" << _height << std::endl;
+    RendererConsole::GetInstance()->AddLog("Create Render Texture: %dx%d", _width, _height); 
 }
 
 RenderTexture::~RenderTexture()
 {   
-    std::cout << "Delete RenderTexture" << std::endl;
+    RendererConsole::GetInstance()->AddLog("Delete RenderTexture"); 
     glDeleteTextures(1, &color_buffer);
     glDeleteRenderbuffers(1, &renderbuffer);
     glDeleteFramebuffers(1, &framebuffer);
@@ -66,7 +67,7 @@ void RenderTexture::CreateFrameBuffer(int _width, int _height)
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+        RendererConsole::GetInstance()->AddLog("[error] FRAMEBUFFER: Framebuffer is not complete!"); 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -84,12 +85,12 @@ DepthTexture::DepthTexture(int _width, int _height) : FrameBufferTexture(_width,
     glBindTexture(GL_TEXTURE_2D, 0);
 
     CreateFrameBuffer(_width, _height);
-    std::cout << "Create Depth Texture: " << _width << "x" << _height << std::endl;
+    RendererConsole::GetInstance()->AddLog("Create Depth Texture: %dx%d", _width, _height); 
 }
 
 DepthTexture::~DepthTexture()
 {   
-    std::cout << "Delete Depth Texture" << std::endl;
+    RendererConsole::GetInstance()->AddLog("Delete Depth Texture"); 
     glDeleteTextures(1, &color_buffer);
     glDeleteFramebuffers(1, &framebuffer);
 }

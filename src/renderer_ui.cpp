@@ -1,4 +1,5 @@
 #include <renderer_ui.h>
+#include <renderer_console.h>
 #include <renderer_window.h>
 #include <model.h>
 #include <scene.h>
@@ -323,7 +324,7 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     ImGuiWindowFlags window_flags = 0;
     static bool p_open = true;
-    window_flags |= ImGuiWindowFlags_MenuBar;
+    window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse;
     {
         ImGui::Begin("Main", &p_open, window_flags);
 
@@ -381,6 +382,11 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
                 }
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("Window"))
+            {
+                ImGui::Checkbox("Console", &showConsole);
+                ImGui::EndMenu();
+            }
             ImGui::EndMenuBar();
         }
 
@@ -392,6 +398,7 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
     ImportShaderPanel(window);
     ImportTexturePanel(window);
     FileBrowser(window, file_path);
+    if (showConsole) RendererConsole::GetInstance()->Draw("Renderer Console", &showConsole);
 }
 
 /*********************
@@ -444,7 +451,7 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
                     }
                     else
                     {
-                        std::cout << "Editor Scene Object can not be deleted!" << std::endl;
+                        RendererConsole::GetInstance()->AddLog("[error] Editor Scene Object can not be deleted!"); 
                     }
                 }
                 ImGui::EndPopup();
@@ -601,7 +608,7 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
                             }
                             else
                             {
-                                std::cout << "Editor Shader can not be removed!" << std::endl;
+                                RendererConsole::GetInstance()->AddLog("[error] Editor Shader can not be removed!"); 
                             }
                         }
                         if (ImGui::Button("Close"))
@@ -637,7 +644,7 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
                                 }
                                 else
                                 {
-                                    std::cout << "Editor Texture can not be removed!" << std::endl;
+                                    RendererConsole::GetInstance()->AddLog("[error] Editor Texture can not be deleted!"); 
                                 }
                             }
                             if (ImGui::Button("Close"))

@@ -3,14 +3,15 @@
 #include <Shader.h>
 #include <string>
 #include <file_system.h>
+#include <renderer_console.h>
 
 unsigned int Material::cur_id = 0;
 
-Material::Material()                                                    { id = cur_id++;                                        }
-Material::~Material()                                                   { std::cout << "delete Material" << std::endl;          }
-ModelMaterial::~ModelMaterial()                                         { std::cout << "delete Model Material" << std::endl;    }
-PBRMaterial::~PBRMaterial()                                             { std::cout << "delete PBR Material" << std::endl;      }
-bool Material::IsValid()                                                { return shader != nullptr;                             }
+Material::Material()                                                    { id = cur_id++;                                                    }
+Material::~Material()                                                   { RendererConsole::GetInstance()->AddLog("delete Material");        }
+ModelMaterial::~ModelMaterial()                                         { RendererConsole::GetInstance()->AddLog("delete Model Material");  }
+PBRMaterial::~PBRMaterial()                                             { RendererConsole::GetInstance()->AddLog("delete PBR Material");    }
+bool Material::IsValid()                                                { return shader != nullptr;                                         }
 
 void Material::SetTexture(Texture2D **slot, Texture2D *new_tex)
 {

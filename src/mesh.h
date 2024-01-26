@@ -195,6 +195,9 @@ public:
 
     void PureDraw()
     {
-        mesh->Draw();
+        if (mesh != nullptr)
+        {
+            mesh->Draw();
+        }
     }
 };

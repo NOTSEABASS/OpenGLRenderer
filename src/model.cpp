@@ -1,5 +1,6 @@
 #include <scene_object.h>
 #include <model.h>
+#include <renderer_console.h>
 
 map<string, Model*> Model::LoadedModel;
 
@@ -9,7 +10,7 @@ Model::Model(std::filesystem::path path, bool gamma) : gammaCorrection(gamma)   
 
 Model::~Model()
 {
-    std::cout << "Delete Model: " << directory << std::endl;
+    RendererConsole::GetInstance()->AddLog("Delete Model: %s", directory); 
     for (auto it : refSceneModels.references)
     {
         it->OnModelRemoved();
@@ -26,7 +27,7 @@ void Model::loadModel(string const& path)
     // check for errors
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
     {
-        cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+        RendererConsole::GetInstance()->AddLog("[error] ASSIMP: %s", importer.GetErrorString()); 
         return;
     }
     // retrieve the directory path of the filepath
