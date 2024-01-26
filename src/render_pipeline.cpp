@@ -300,15 +300,15 @@ void RenderPipeline::Render()
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-    
+
+    // Draw color pass
+    ProcessColorPass();
+
     // Draw Gizmos
     if (EditorSettings::DrawGizmos)
     {
         RenderGizmos();
     }
-
-    // Draw color pass
-    ProcessColorPass();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
