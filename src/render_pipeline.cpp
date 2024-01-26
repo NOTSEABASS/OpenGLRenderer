@@ -307,6 +307,7 @@ void RenderPipeline::Render()
     // Draw color pass
     ProcessColorPass();
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     // Draw Gizmos
     if (EditorSettings::DrawGizmos)
     {
