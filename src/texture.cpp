@@ -111,7 +111,7 @@ bool Texture2D::LoadTexture2D(const char *path, ETexType type)
     }
     else
     {
-        RendererConsole::GetInstance()->AddLog("Failed to load texture at:  %s", path_s.c_str());
+        RendererConsole::GetInstance()->AddWarn("Failed to load texture at:  %s", path_s.c_str());
         stbi_image_free(data);
         return false;
     }

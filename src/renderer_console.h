@@ -5,11 +5,24 @@
 #include <iostream>
 #include <singleton_util.h>
 
+struct LogItem
+{
+    const char* content;
+    ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    
+    LogItem(const char* _content) : content(_content) {}
+
+    ~LogItem()
+    {
+        delete content;
+    }
+};
+
 class RendererConsole : public Singleton<RendererConsole>
 {
 private:
     char                  InputBuf[256];
-    ImVector<char*>       Items;
+    ImVector<LogItem*>     Items;
     ImVector<const char*> Commands;
     ImVector<char*>       History;
     int                   HistoryPos;    // -1: new line, 0..History.Size-1 browsing history.
@@ -125,7 +138,7 @@ private:
     }
 
 public:
-        RendererConsole()
+    RendererConsole()
     {
         ClearLog();
         memset(InputBuf, 0, sizeof(InputBuf));
@@ -150,7 +163,7 @@ public:
     void ClearLog()
     {
         for (int i = 0; i < Items.Size; i++)
-            free(Items[i]);
+            delete Items[i];
         Items.clear();
     }
 
@@ -163,7 +176,36 @@ public:
         vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
         buf[IM_ARRAYSIZE(buf)-1] = 0;
         va_end(args);
-        Items.push_back(Strdup(buf));
+        LogItem* item = new LogItem(Strdup(buf));
+        Items.push_back(item);
+    }
+
+    void AddWarn(const char* fmt, ...) IM_FMTARGS(2)
+    {
+        // FIXME-OPT
+        char buf[1024];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
+        buf[IM_ARRAYSIZE(buf)-1] = 0;
+        va_end(args);
+        LogItem* item = new LogItem(Strdup(buf));
+        item->color = ImVec4(1.0f, 0.8f, 0.0f, 1.0f);
+        Items.push_back(item);
+    }
+
+    void AddError(const char* fmt, ...) IM_FMTARGS(2)
+    {
+        // FIXME-OPT
+        char buf[1024];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
+        buf[IM_ARRAYSIZE(buf)-1] = 0;
+        va_end(args);
+        LogItem* item = new LogItem(Strdup(buf));
+        item->color = ImVec4(1.0f, 0.2f, 0.0f, 1.0f);
+        Items.push_back(item);
     }
 
     void Draw(const char* title, bool* p_open)
@@ -245,22 +287,16 @@ public:
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
             if (copy_to_clipboard)
                 ImGui::LogToClipboard();
-            for (const char* item : Items)
+            for (auto item : Items)
             {
-                if (!Filter.PassFilter(item))
+                if (!Filter.PassFilter(item->content))
                     continue;
 
                 // Normally you would store more information in your item than just a string.
                 // (e.g. make Items[] an array of structure, store color/type etc.)
-                ImVec4 color;
-                bool has_color = false;
-                if (strstr(item, "[error]")) { color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f); has_color = true; }
-                else if (strncmp(item, "# ", 2) == 0) { color = ImVec4(1.0f, 0.8f, 0.6f, 1.0f); has_color = true; }
-                if (has_color)
-                    ImGui::PushStyleColor(ImGuiCol_Text, color);
-                ImGui::TextUnformatted(item);
-                if (has_color)
-                    ImGui::PopStyleColor();
+                ImGui::PushStyleColor(ImGuiCol_Text, item->color);
+                ImGui::TextUnformatted(item->content);
+                ImGui::PopStyleColor();
             }
             if (copy_to_clipboard)
                 ImGui::LogFinish();

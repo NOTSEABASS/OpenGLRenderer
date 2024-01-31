@@ -5,8 +5,14 @@ This is a tiny-renderer project written in c++ based on OpenGL
 <img src="/img/sample_gif_2.gif" style="zoom:50%;" />
 
 ## UpdateInfo
+Update 1.2.0
+- Add simple console system
+- Replace debug log from std::cout to console log item
+- Fix shadow bias
+- Fix gizmos in polygonmode
+
 Update 1.1.0
-- Add Infinite grid as gizmos
+- Add infinite grid as gizmos
 - Add light debug cube
 - Add scene object coordinate axes
 - Add material choosing combo

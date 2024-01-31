@@ -91,7 +91,7 @@ public:
         }
         catch (std::ifstream::failure &e)
         {
-            RendererConsole::GetInstance()->AddLog("[error] SHADER: file not successfully read %s", e.what());
+            RendererConsole::GetInstance()->AddError("[error] SHADER: file not successfully read %s", e.what());
             return false;
         }
         const char *vShaderCode = vertexCode.c_str();
@@ -204,7 +204,7 @@ private:
             if (!success)
             {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-                RendererConsole::GetInstance()->AddLog("[error] SHADER: shader compilation error of type %s\n %s\n -- --------------------------------------------------- -- ", type.c_str(), infoLog);
+                RendererConsole::GetInstance()->AddError("[error] SHADER: shader compilation error of type %s\n %s\n -- --------------------------------------------------- -- ", type.c_str(), infoLog);
             }
         }
         else
@@ -213,7 +213,7 @@ private:
             if (!success)
             {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-                RendererConsole::GetInstance()->AddLog("[error] SHADER: program link error %s\n %s\n -- --------------------------------------------------- -- ", type.c_str(), infoLog);
+                RendererConsole::GetInstance()->AddError("[error] SHADER: program link error %s\n %s\n -- --------------------------------------------------- -- ", type.c_str(), infoLog);
             }
         }
     }

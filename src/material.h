@@ -102,6 +102,7 @@ public:
     float ao_strength 				= 1;
     float roughness_strength 		= 1;
     float metal_strength 			= 0;
+	float shadow_strength 			= 1;
 
 public:
 	PBRMaterial();

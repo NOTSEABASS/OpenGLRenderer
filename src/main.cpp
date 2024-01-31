@@ -31,7 +31,7 @@ Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -
 
 int main()
 {
-    RendererWindow main_window(&camera, "Renderer-shadow pass", WindowSize(window_width, window_height));
+    RendererWindow main_window(&camera, "Tiny-Renderer(v1.1.0)", WindowSize(window_width, window_height));
     // Create scene
     Scene* scene = new Scene(&main_window);
     main_window.AttatchObserver(&scene->render_pipeline);

@@ -128,6 +128,7 @@ PBRMaterial::PBRMaterial() : Material::Material()
     material_variables.allFloat.push_back(new MaterialSlot<float *>("aoStrength", &ao_strength));
     material_variables.allFloat.push_back(new MaterialSlot<float *>("roughnessStrength", &roughness_strength));
     material_variables.allFloat.push_back(new MaterialSlot<float *>("metalStrength", &metal_strength));
+    material_variables.allFloat.push_back(new MaterialSlot<float *>("shadowStrength", &shadow_strength));
 }
 
 void PBRMaterial::Setup(std::vector<Texture2D *> default_textures)

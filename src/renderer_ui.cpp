@@ -451,7 +451,7 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
                     }
                     else
                     {
-                        RendererConsole::GetInstance()->AddLog("[error] Editor Scene Object can not be deleted!"); 
+                        RendererConsole::GetInstance()->AddError("[error] Editor Scene Object can not be deleted!"); 
                     }
                 }
                 ImGui::EndPopup();
@@ -608,7 +608,7 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
                             }
                             else
                             {
-                                RendererConsole::GetInstance()->AddLog("[error] Editor Shader can not be removed!"); 
+                                RendererConsole::GetInstance()->AddError("[error] Editor Shader can not be removed!"); 
                             }
                         }
                         if (ImGui::Button("Close"))
@@ -644,7 +644,7 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
                                 }
                                 else
                                 {
-                                    RendererConsole::GetInstance()->AddLog("[error] Editor Texture can not be deleted!"); 
+                                    RendererConsole::GetInstance()->AddError("[error] Editor Texture can not be deleted!"); 
                                 }
                             }
                             if (ImGui::Button("Close"))

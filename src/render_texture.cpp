@@ -67,7 +67,7 @@ void RenderTexture::CreateFrameBuffer(int _width, int _height)
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        RendererConsole::GetInstance()->AddLog("[error] FRAMEBUFFER: Framebuffer is not complete!"); 
+        RendererConsole::GetInstance()->AddError("[error] FRAMEBUFFER: Framebuffer is not complete!"); 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
