@@ -39,6 +39,7 @@ private:
     std::map<unsigned int, SceneModel *> ModelQueueForRender;
     RendererWindow *window;
     Shader* depth_shader;
+    Shader* grid_shader;
 
     void ProcessZPrePass        ();
     void ProcessShadowPass      ();

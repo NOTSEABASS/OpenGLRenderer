@@ -25,9 +25,20 @@ RenderPipeline::RenderPipeline(RendererWindow* _window) : window(_window)
     depth_shader = new Shader(  FileSystem::GetContentPath() / "Shader/depth.vs",
                                 FileSystem::GetContentPath() / "Shader/depth.fs",
                                 true);
+    grid_shader = new Shader(   FileSystem::GetContentPath() / "Shader/grid.vs",
+                                FileSystem::GetContentPath() / "Shader/grid.fs",
+                                true);
     depth_shader->LoadShader();
+    grid_shader->LoadShader();
 }
-RenderPipeline::~RenderPipeline() {}
+
+RenderPipeline::~RenderPipeline()
+{
+    delete depth_texture;
+    delete shadow_map;
+    delete depth_shader;
+    delete grid_shader;
+}
 
 SceneModel *RenderPipeline::GetRenderModel(unsigned int id)
 {

@@ -162,7 +162,11 @@ public:
         shader = Shader::LoadedShaders["grid.fs"];
     }
 
-    ~GGrid() {}
+    ~GGrid() 
+    {
+        glDeleteVertexArrays(1, &quadVAO);
+        glDeleteBuffers(1, &quadVBO);
+    }
 
     void Draw()
     {

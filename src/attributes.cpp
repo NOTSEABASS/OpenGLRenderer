@@ -288,5 +288,16 @@ ATR_PostProcessNode::ATR_PostProcessNode(PostProcess* _postprocess) : postproces
 ATR_PostProcessNode::~ATR_PostProcessNode() {}
 void ATR_PostProcessNode::UI_Implement()
 {
-    ImGui::Checkbox((postprocess->name+ "##" + std::to_string(id)).c_str(), &postprocess->enabled);   
+    ImGui::SeparatorText(postprocess->name.c_str());
+    ImGui::Checkbox(("enabled##" + std::to_string(id)).c_str(), &postprocess->enabled);   
+}
+
+ATR_BloomProcessNode::ATR_BloomProcessNode(PostProcess* _bloomprocess) : ATR_PostProcessNode(_bloomprocess) {}
+ATR_BloomProcessNode::~ATR_BloomProcessNode() {}
+void ATR_BloomProcessNode::UI_Implement()
+{
+    ImGui::SeparatorText(postprocess->name.c_str());
+    ImGui::Checkbox(("enabled##" + std::to_string(id)).c_str(), &postprocess->enabled);
+    ImGui::DragFloat("threshold", &dynamic_cast<BloomProcess*>(postprocess)->threshold, 0.05f);
+    ImGui::DragFloat("exposure", &dynamic_cast<BloomProcess*>(postprocess)->exposure, 0.05f);
 }

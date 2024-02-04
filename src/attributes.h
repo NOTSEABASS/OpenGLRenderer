@@ -163,17 +163,25 @@ public:
     void UI_Implement()         override;
     ~ATR_PostProcessNode()      override;
 
-private:
+protected:
     static unsigned int cur_id;
     PostProcess* postprocess;
+};
+
+class ATR_BloomProcessNode : public ATR_PostProcessNode
+{
+public:
+    ATR_BloomProcessNode(PostProcess* _postprocess);
+    virtual void UI_Implement()         override;
+    virtual ~ATR_BloomProcessNode()      override;
 };
 
 class ATR_PostProcessManager : public Attribute
 {
 public:
     ATR_PostProcessManager();
-    void UI_Implement()         override;
-    ~ATR_PostProcessManager()   override;
+    virtual void UI_Implement()         override;
+    virtual ~ATR_PostProcessManager()   override;
 
 private:
     std::list<ATR_PostProcessNode*> atr_pps;

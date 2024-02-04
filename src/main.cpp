@@ -76,8 +76,8 @@ int main()
                                             FileSystem::GetContentPath() / "Shader/blur.fs",
                                             true);
 
-    Shader *grid_shader     = new Shader(   FileSystem::GetContentPath() / "Shader/grid.vs",
-                                            FileSystem::GetContentPath() / "Shader/grid.fs",
+    Shader *bloom_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                            FileSystem::GetContentPath() / "Shader/bloom.fs",
                                             true);
 
     default_shader->LoadShader();
@@ -87,7 +87,7 @@ int main()
     gamma_correcting_shader->LoadShader();
     inverse_shader->LoadShader();
     blur_shader->LoadShader();
-    grid_shader->LoadShader();
+    bloom_shader->LoadShader();
 
     // Create a post process manager
     PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depth_texture);
@@ -96,11 +96,11 @@ int main()
     scene->render_pipeline.postprocess_manager = ppm;
 
     // Add a gamma correct post process
-    ppm->AddPostProcess( ppm->CreatePostProcess( gamma_correcting_shader, "Gamma correction" ));
+    ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( gamma_correcting_shader, "Gamma correction" ));
     // Post process for test
-    ppm->AddPostProcess( ppm->CreatePostProcess( inverse_shader, "inverse", false));
-    ppm->AddPostProcess( ppm->CreatePostProcess( blur_shader, "Blur", false ));
-    // ppm->AddPostProcess( ppm->CreatePostProcess( grid_shader, "Grid", false ));
+    ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( inverse_shader, "inverse", false));
+    ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( blur_shader, "Blur", false ));
+    ppm->AddPostProcess( ppm->CreatePostProcess<BloomProcess>( bloom_shader, "Bloom", false ));
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);

@@ -24,11 +24,22 @@ class RenderTexture : public FrameBufferTexture
 {
 public:
     RenderTexture(int _width, int _height);
-    ~RenderTexture();
+    virtual ~RenderTexture();
+
+protected:
+    void CreateFrameBuffer(int _width, int _height) override;
+    unsigned int    renderbuffer    =   0;
+};
+
+class BloomRenderBuffer : public RenderTexture
+{
+public:
+    unsigned int    bright_buffer;
+    BloomRenderBuffer(int _width, int _height);
+    ~BloomRenderBuffer();
 
 private:
     void CreateFrameBuffer(int _width, int _height) override;
-    unsigned int    renderbuffer    =   0;
 };
 
 class DepthTexture : public FrameBufferTexture

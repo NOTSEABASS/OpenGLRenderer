@@ -4,12 +4,19 @@
 #include <list>
 #include <scene_object.h>
 #include <attributes.h>
+#include <type_traits>
 
 class RenderTexture;
+class BloomRenderBuffer;
 class RendererWindow;
 class Shader;
 class DepthTexture;
 
+/************************************************************
+* To call PostProcessManager::CreatePostProcess correctly,
+* all class derived from PostProcess should implement a 
+* constructor same as PostProcess, which has 5 input parameters.
+************************************************************/
 class PostProcess
 {
 public:
@@ -22,18 +29,44 @@ public:
     ATR_PostProcessNode* atr_ppn;
 
     PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled = true);
-    ~PostProcess();
+    virtual ~PostProcess();
 
-    void BeiginRender();
-    void EndRender();
+    virtual void OnRenderAreaResized(int x, int y);
+    virtual void BeiginRender();
+    virtual void EndRender();
 
     /******************************************
     * Draw result of all post process,
     * Should call after all post process node.
     *******************************************/
-    void Execute(unsigned int quad);
+    virtual void Execute(unsigned int quad);
 };
 
+class BloomProcess : public PostProcess
+{
+public:
+    BloomProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled = true);
+    ~BloomProcess();
+
+    virtual void OnRenderAreaResized(int x, int y);
+    // virtual void BeiginRender();
+    // virtual void EndRender();
+    virtual void Execute(unsigned int quad);
+
+    float exposure = 1;
+    float threshold = 1;
+
+private:
+    Shader* filter_shader;
+    Shader* gaussblur_shader;
+    BloomRenderBuffer *bloom_buffer;
+    RenderTexture *pingpong_buffer[2];
+};
+
+/************************************************************
+* Post process manager:
+* Will process all post process in a user-defined order.
+*************************************************************/
 class PostProcessManager : public SceneObject
 {
 private:
@@ -56,7 +89,11 @@ public:
     PostProcessManager(int screen_width, int screen_height,  DepthTexture* _depthTexture);
     ~PostProcessManager();
 
-    PostProcess* CreatePostProcess(Shader * shader, std::string _name, bool default_enabled = true);
+    template<class T>
+    typename std::enable_if_t<std::is_base_of_v<PostProcess, T>, T>* CreatePostProcess(Shader * shader, std::string name, bool default_enabled = true)
+    {
+        return new T(read_rt, write_rt, shader, name, default_enabled);
+    }
 
     void AddPostProcess(PostProcess* p);
     void RemovePostProcess(PostProcess* p);

@@ -71,6 +71,59 @@ void RenderTexture::CreateFrameBuffer(int _width, int _height)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+BloomRenderBuffer::BloomRenderBuffer(int _width, int _height) : RenderTexture(_width, _height)
+{
+    glGenTextures(1, &bright_buffer);
+    glBindTexture(GL_TEXTURE_2D, bright_buffer);
+    // HDR
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, _width, _height, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    CreateFrameBuffer(_width, _height);
+    RendererConsole::GetInstance()->AddLog("Create Bloom Buffer: %dx%d", _width, _height); 
+}
+
+/*******************************************************************
+* Create a frame buffer and bind color buffer and bright color buffer.
+********************************************************************/
+void BloomRenderBuffer::CreateFrameBuffer(int _width, int _height)
+{
+    // Create frame buffer
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // Bind color attatchment
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_buffer, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bright_buffer, 0);
+
+    GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+
+    // Create and bind render buffer object (depth and stencil)
+    glGenRenderbuffers(1, &renderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer); 
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, _width, _height);  
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        RendererConsole::GetInstance()->AddError("[error] FRAMEBUFFER: Framebuffer is not complete!"); 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+BloomRenderBuffer::~BloomRenderBuffer()
+{
+    RendererConsole::GetInstance()->AddLog("Delete RenderTexture"); 
+    glDeleteTextures(1, &color_buffer);
+    glDeleteTextures(1, &bright_buffer);
+    glDeleteRenderbuffers(1, &renderbuffer);
+    glDeleteFramebuffers(1, &framebuffer);
+}
+
 DepthTexture::DepthTexture(int _width, int _height) : FrameBufferTexture(_width, _height)
 {
     glGenTextures(1, &color_buffer);
