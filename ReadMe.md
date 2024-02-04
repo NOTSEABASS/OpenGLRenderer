@@ -5,6 +5,10 @@ This is a tiny-renderer project written in c++ based on OpenGL
 <img src="/img/sample_gif_2.gif" style="zoom:50%;" />
 
 ## UpdateInfo
+Update 1.2.1
+- Add a bloom post process
+- Remove the console window
+
 Update 1.2.0
 - Add simple console system
 - Replace debug log from std::cout to console log item

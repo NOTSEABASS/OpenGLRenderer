@@ -48,8 +48,6 @@ int main()
     EditorContent::editor_tex.insert({"file_ico", file_ico});
     EditorContent::editor_tex.insert({"default_tex", whiteTex});
 
-    Model *M_nanosuit   = new Model(FileSystem::FileSystem::GetContentPath() / "Models/nanosuit/nanosuit.obj");
-    Model *M_bunny      = new Model(FileSystem::FileSystem::GetContentPath() / "Models/bunny.fbx");
     Model *M_sphere     = new Model(FileSystem::FileSystem::GetContentPath() / "Models/sphere.fbx");
     Model *M_cube       = new Model(FileSystem::FileSystem::GetContentPath() / "Models/cube.fbx");
     // build and compile our shader program
