@@ -14,14 +14,26 @@ in VS_OUT{
     vec4 FragPosLightSpace;
 } fs_in;
 
-uniform sampler2D shadowMap;
+struct Texture2D
+{
+    sampler2D texture;
+    vec2 tilling;
+    vec2 offset;
+};
 
-uniform sampler2D albedo_map;
-uniform sampler2D normal_map;
-uniform sampler2D metal_map;
-uniform sampler2D roughness_map;
-uniform sampler2D ao_map;
-uniform sampler2D spec_map;
+vec4 SampleTexture(Texture2D tex, vec2 uv)
+{
+    return texture(tex.texture, vec2(uv.xy * tex.tilling) + tex.offset);
+}
+
+uniform sampler2D shadowMap;
+uniform Texture2D albedo_map;
+uniform Texture2D normal_map;
+uniform Texture2D metal_map;
+uniform Texture2D roughness_map;
+uniform Texture2D ao_map;
+uniform Texture2D spec_map;
+
 uniform vec3 color;
 uniform vec3 specularColor;
 uniform float normalStrength;
@@ -151,12 +163,13 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 
 void main()
 {    
-    vec4 albedo = texture(albedo_map, fs_in.TexCoords);
-    vec4 metallic = texture(metal_map, fs_in.TexCoords) * metalStrength;
-    vec4 ao = texture(ao_map, fs_in.TexCoords) * aoStrength;
-    vec3 specColor = texture(spec_map, fs_in.TexCoords).xyz * specularColor;
-    vec4 roughness = texture(roughness_map, fs_in.TexCoords) * roughnessStrength;
-    vec3 normalWS = texture(normal_map, fs_in.TexCoords).rgb;
+    vec4 albedo = SampleTexture(albedo_map, fs_in.TexCoords);
+    vec4 metallic = SampleTexture(metal_map, fs_in.TexCoords) * metalStrength;
+    vec4 ao = SampleTexture(ao_map, fs_in.TexCoords) * aoStrength;
+    vec3 specColor = SampleTexture(spec_map, fs_in.TexCoords).xyz * specularColor;
+    vec4 roughness = SampleTexture(roughness_map, fs_in.TexCoords) * roughnessStrength;
+    vec3 normalWS = SampleTexture(normal_map, fs_in.TexCoords).rgb;
+
     normalWS = normalize(normalWS * 2.0 - 1.0);
     normalWS.xy *= normalStrength;
     mat3 TBN = mat3(fs_in.T, fs_in.B, fs_in.N);

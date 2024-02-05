@@ -26,7 +26,7 @@ public:
         std::string frag_str = _fragmentPath.string();
         std::replace(vert_str.begin(), vert_str.end(), '\\', '/');
         std::replace(frag_str.begin(), frag_str.end(), '\\', '/');
-        RendererConsole::GetInstance()->AddLog("Load Shader From: [vert] %s\n                  [frag]%s", vert_str.c_str(), frag_str.c_str());
+        RendererConsole::GetInstance()->AddNote("Load Shader From: [vert] %s\n                  [frag]%s", vert_str.c_str(), frag_str.c_str());
         vertexPath = vert_str;
         fragmentPath = frag_str;
     }
@@ -37,7 +37,7 @@ public:
         std::string frag_str = _fragmentPath;
         std::replace(vert_str.begin(), vert_str.end(), '\\', '/');
         std::replace(frag_str.begin(), frag_str.end(), '\\', '/');
-        RendererConsole::GetInstance()->AddLog("Load Shader From: [vert] %s\n                  [frag]%s", vert_str.c_str(), frag_str.c_str());
+        RendererConsole::GetInstance()->AddNote("Load Shader From: [vert] %s\n                  [frag]%s", vert_str.c_str(), frag_str.c_str());
         vertexPath = vert_str;
         fragmentPath = frag_str;
     }

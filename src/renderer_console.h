@@ -180,6 +180,20 @@ public:
         Items.push_back(item);
     }
 
+    void AddNote(const char* fmt, ...) IM_FMTARGS(2)
+    {
+        // FIXME-OPT
+        char buf[1024];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
+        buf[IM_ARRAYSIZE(buf)-1] = 0;
+        va_end(args);
+        LogItem* item = new LogItem(Strdup(buf));
+        item->color = ImVec4(0.2f, 0.8f, 0.0f, 1.0f);
+        Items.push_back(item);
+    }
+
     void AddWarn(const char* fmt, ...) IM_FMTARGS(2)
     {
         // FIXME-OPT

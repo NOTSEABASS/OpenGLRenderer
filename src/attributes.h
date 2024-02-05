@@ -35,20 +35,24 @@ public:
     ~ATR_Transform()    override = default;
 };
 
+class MaterialTexture2D;
 class ATR_MaterialTexture : Attribute
 {
 public:
-    ATR_MaterialTexture( std::string _name, Material *_material, Texture2D **_texture );
+    ATR_MaterialTexture( std::string _name, Material *_material, MaterialTexture2D *_texture );
     void UI_Implement()     override;
     ~ATR_MaterialTexture()  override = default;
 
     unsigned int                    id;
     std::string                     slot_name = "null";
-    Texture2D                       **texture;
+    MaterialTexture2D               *mat_tex;
     Material                        *material;
+
 
 private:
     static unsigned int             cur_id;
+    float tilling[2];
+    float offset[2];
 };
 
 class ATR_MaterialFloat : Attribute

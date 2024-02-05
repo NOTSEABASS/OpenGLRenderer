@@ -143,6 +143,20 @@ void RenderPipeline::ProcessZPrePass()
 **********************/
 void RenderPipeline::ProcessColorPass()
 {
+    glClearColor(clear_color[0], clear_color[1], clear_color[2], 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    if (EditorSettings::UsePolygonMode)
+    {
+        glLineWidth(0.05);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
     glViewport(0, 0, window->Width(), window->Height());
     // view/projection transformations
     Camera* camera = window->render_camera;
@@ -210,6 +224,7 @@ void RenderPipeline::ProcessColorPass()
         }
         sm->DrawSceneModel();
     }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 /*********************
@@ -301,24 +316,10 @@ void RenderPipeline::Render()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-    glClearColor(clear_color[0],clear_color[1],clear_color[2],1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-
-    if (EditorSettings::UsePolygonMode)
-    {
-        glLineWidth(0.05);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
 
     // Draw color pass
     ProcessColorPass();
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     // Draw Gizmos
     if (EditorSettings::DrawGizmos)
     {

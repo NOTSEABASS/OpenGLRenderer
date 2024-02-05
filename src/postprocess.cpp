@@ -177,6 +177,13 @@ void BloomProcess::OnRenderAreaResized(int x, int y)
 
     delete bloom_buffer;
     bloom_buffer = new BloomRenderBuffer(x, y);
+
+
+    delete pingpong_buffer[0];
+    delete pingpong_buffer[1];
+    pingpong_buffer[0] = new RenderTexture(x, y);
+    pingpong_buffer[1] = new RenderTexture(x, y);
+    
 }
 
 /****************************************
@@ -201,7 +208,7 @@ void BloomProcess::Execute(unsigned int quad)
 
     // Blur the bright buffer
     GLboolean horizontal = true, first_iteration = true;
-    GLuint amount = 20;
+    GLuint amount = 10;
     gaussblur_shader->use();
     for (GLuint i = 0; i < amount; i++)
     {

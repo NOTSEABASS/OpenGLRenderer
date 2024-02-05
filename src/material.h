@@ -25,9 +25,21 @@ public:
 	T variable;
 };
 
+struct MaterialTexture2D
+{
+	Texture2D** texture;
+	glm::vec2 tilling = glm::vec2(1, 1);
+	glm::vec2 offset = glm::vec2(0, 0);
+
+	MaterialTexture2D(Texture2D** _texture)
+	{
+		texture = _texture;
+	}
+};
+
 struct MaterialVariables
 {
-	std::vector<MaterialSlot<Texture2D**>*> 	allTextures;
+	std::vector<MaterialSlot<MaterialTexture2D>*> 	allTextures;
 	std::vector<MaterialSlot<int*>*> 			allInt;
 	std::vector<MaterialSlot<float*>*> 			allFloat;
 	std::vector<MaterialSlot<float*>*> 			allVec3;

@@ -48,8 +48,8 @@ void ATR_Transform::UI_Implement()
     transform->SetScale(tmp_scale[0], tmp_scale[1], tmp_scale[2]);
 }
 
-ATR_MaterialTexture::ATR_MaterialTexture(std::string _name, Material *_material, Texture2D **_texture) : material(_material),
-                                                                                                         texture(_texture),
+ATR_MaterialTexture::ATR_MaterialTexture(std::string _name, Material *_material, MaterialTexture2D *_texture) : material(_material),
+                                                                                                         mat_tex(_texture),
                                                                                                          slot_name(_name)
 {
     id = cur_id++;
@@ -59,11 +59,11 @@ void ATR_MaterialTexture::UI_Implement()
 {
     std::string item_name = "null";
     std::string tex_type = "null";
-    if (*texture != nullptr)
+    if (mat_tex->texture != nullptr)
     {
         const char* types[]= {"RED", "RGB", "RGBA", "SRGB", "SRGBA"};
-        item_name = (*texture)->name;
-        tex_type = types[(*texture)->tex_type];
+        item_name = (*mat_tex->texture)->name;
+        tex_type = types[(*mat_tex->texture)->tex_type];
     }
     std::string material_id = std::to_string(material->id);
     std::string atrtex_id = std::to_string(id);
@@ -74,7 +74,7 @@ void ATR_MaterialTexture::UI_Implement()
     ImGui::Text(("type:" + tex_type).c_str());
     ImGui::EndChild();
     ImGui::SameLine();
-    if (texture != nullptr)
+    if (mat_tex->texture != nullptr)
     {
         float width = 32;
         float height = 32;
@@ -90,7 +90,7 @@ void ATR_MaterialTexture::UI_Implement()
             tex_names.push_back(it->first);
         }
 
-        if (ImGui::ImageButton(("texture##" + material_id + atrtex_id).c_str(), (GLuint *)(*texture)->id, ImVec2(width, height), uv_min, uv_max, bg_col, tint_col))
+        if (ImGui::ImageButton(("texture##" + material_id + atrtex_id).c_str(), (GLuint *)(*mat_tex->texture)->id, ImVec2(width, height), uv_min, uv_max, bg_col, tint_col))
         {
             ImGui::OpenPopup(("popup##" + material_id + atrtex_id).c_str());
         }
@@ -101,7 +101,7 @@ void ATR_MaterialTexture::UI_Implement()
             {
                 if (ImGui::Selectable((tex_names[n] + "##" + material_id + atrtex_id + std::to_string(n)).c_str()))
                 {
-                    material->SetTexture(texture, Texture2D::LoadedTextures[tex_names[n]]);
+                    material->SetTexture(mat_tex->texture, Texture2D::LoadedTextures[tex_names[n]]);
                 }
                 ImGui::SameLine();
                 ImGui::Image((GLuint *)Texture2D::LoadedTextures[tex_names[n]]->id, ImVec2(16, 16), uv_min, uv_max);
@@ -109,7 +109,12 @@ void ATR_MaterialTexture::UI_Implement()
             ImGui::EndPopup();
         }
     }
-    
+    tilling[0] = mat_tex->tilling.r; tilling[1] = mat_tex->tilling.g;
+    offset[0] = mat_tex->offset.r;   offset[1] = mat_tex->offset.g;
+    ImGui::DragFloat2(("tilling##" + material_id + atrtex_id).c_str(), tilling, 0.1f);
+    ImGui::DragFloat2(("offset##" + material_id + atrtex_id).c_str(), offset, 0.01f);
+    mat_tex->tilling.r = tilling[0]; mat_tex->tilling.g = tilling[1];
+    mat_tex->offset.r = offset[0];   mat_tex->offset.g = offset[1];
 }
 
 ATR_MaterialFloat::ATR_MaterialFloat(std::string _name, Material *_material, float *_value) :   slot_name(_name), 
@@ -158,7 +163,7 @@ ATR_Material::ATR_Material(Material *_material) : material(_material)
     {
         atr_textures.push_back(new ATR_MaterialTexture(_material->material_variables.allTextures[i]->slot_name,
                                                        _material,
-                                                       _material->material_variables.allTextures[i]->variable));
+                                                       &_material->material_variables.allTextures[i]->variable));
     }
 
     for (int i = 0; i < _material->material_variables.allInt.size(); i++)

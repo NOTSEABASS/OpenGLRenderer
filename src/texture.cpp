@@ -117,6 +117,7 @@ bool Texture2D::LoadTexture2D(const char *path, ETexType type)
     }
     stbi_image_free(data);
     name = path_s.substr(path_s.find_last_of('/') + 1, path_s.size());
+    RendererConsole::GetInstance()->AddNote("Load Texture From: %s", path);
     LoadedTextures.insert(std::map<std::string, Texture2D *>::value_type(name, this));
     return true;
 }

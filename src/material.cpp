@@ -26,8 +26,10 @@ void Material::DefaultSetup(std::vector<Texture2D *> default_textures)
     for (auto tex : material_variables.allTextures)
     {
         glActiveTexture(GL_TEXTURE1 + gl_tex_id);
-        glUniform1i(glGetUniformLocation(shader->ID, (tex->slot_name).c_str()), 1 + gl_tex_id);
-        glBindTexture(GL_TEXTURE_2D, (*tex->variable)->id);
+        glUniform1i(glGetUniformLocation(shader->ID, (tex->slot_name + ".texture").c_str()), 1 + gl_tex_id);
+        shader->setVec2((tex->slot_name + ".tilling").c_str(), tex->variable.tilling );
+        shader->setVec2((tex->slot_name + ".offset").c_str(), tex->variable.offset );
+        glBindTexture(GL_TEXTURE_2D, (*tex->variable.texture)->id);
         gl_tex_id++;
     }
     shader->use();
@@ -53,9 +55,9 @@ void Material::OnTextureRemoved(Texture2D *removed_texture)
 {
     for (int i = 0; i < material_variables.allTextures.size(); i++)
     {
-        if (*(material_variables.allTextures[i]->variable) == removed_texture)
+        if (*(material_variables.allTextures[i]->variable.texture) == removed_texture)
         {
-            this->SetTexture(material_variables.allTextures[i]->variable, EditorContent::editor_tex["default_tex"]);
+            this->SetTexture(material_variables.allTextures[i]->variable.texture, EditorContent::editor_tex["default_tex"]);
         }
     }
 }
@@ -83,7 +85,7 @@ ModelMaterial::ModelMaterial() : Material()
     shader = Shader::LoadedShaders["model.fs"];
 
     albedo = EditorContent::editor_tex["default_tex"];
-    material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("albedo", &albedo));
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("albedo_map", MaterialTexture2D(&albedo)));
     albedo->textureRefs.AddRef(this);
     material_variables.allColor.push_back(new MaterialSlot<float *>("color", color));
 }
@@ -94,7 +96,7 @@ ModelMaterial::ModelMaterial(Texture2D *_albedo) : Material::Material()
 
     albedo = _albedo;
     albedo->textureRefs.AddRef(this);
-    material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("albedo_map", &albedo));
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("albedo_map", MaterialTexture2D(&albedo)));
     material_variables.allColor.push_back(new MaterialSlot<float *>("color", color));
 }
 
@@ -115,12 +117,12 @@ PBRMaterial::PBRMaterial() : Material::Material()
     metal_map->textureRefs.AddRef(this);
     spec_map->textureRefs.AddRef(this);
 
-    material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("albedo_map", &albedo_map));
-    material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("normal_map", &normal_map));
-    material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("ao_map", &ao_map));
-    material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("roughness_map", &roughness_map));
-    material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("metal_map", &metal_map));
-    material_variables.allTextures.push_back(new MaterialSlot<Texture2D **>("spec_map", &spec_map));
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("albedo_map", MaterialTexture2D(&albedo_map)));
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("normal_map", MaterialTexture2D(&normal_map)));
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("ao_map", MaterialTexture2D(&ao_map)));
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("roughness_map", MaterialTexture2D(&roughness_map)));
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("metal_map", MaterialTexture2D(&metal_map)));
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("spec_map", MaterialTexture2D(&spec_map)));
 
     material_variables.allColor.push_back(new MaterialSlot<float *>("color", color));
     material_variables.allColor.push_back(new MaterialSlot<float *>("specularColor", specular_color));

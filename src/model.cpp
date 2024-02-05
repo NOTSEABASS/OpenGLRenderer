@@ -37,7 +37,7 @@ void Model::loadModel(string const& path)
     name = path_s.substr(path_s.find_last_of('/') + 1, path_s.size());
     // process ASSIMP's root node recursively
     processNode(scene->mRootNode, scene);
-
+    RendererConsole::GetInstance()->AddNote("Load Model From %s", path.c_str());
     LoadedModel.insert(map<string, Model*>::value_type(name, this));
 }
 

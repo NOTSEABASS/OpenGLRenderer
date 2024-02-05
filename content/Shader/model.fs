@@ -14,8 +14,21 @@ in VS_OUT{
     vec4 FragPosLightSpace;
 } fs_in;
 
+struct Texture2D
+{
+    sampler2D texture;
+    vec2 tilling;
+    vec2 offset;
+};
+
+vec4 SampleTexture(Texture2D tex, vec2 uv)
+{
+    return texture(tex.texture, vec2(uv.xy * tex.tilling) + tex.offset);
+}
+
+
 uniform sampler2D shadowMap;
-uniform sampler2D albedo_map;
+uniform Texture2D albedo_map;
 uniform vec3 color;
 
 float near = 0.1; 
@@ -26,12 +39,12 @@ void main()
     float specularStrength = 0.2;
 
 
-    vec4 albedo = texture(albedo_map, fs_in.TexCoords);
+    vec4 albedo = SampleTexture(albedo_map, fs_in.TexCoords);
     vec3 normal = fs_in.Normal;
 
     // ambient
     float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * fs_in.LightColor * albedo.xyz;
+    vec3 ambient = ambientStrength * fs_in.LightColor * albedo.xyz * color;
   	
     // diffuse 
     vec3 lightDir = -normalize(fs_in.LightDir);

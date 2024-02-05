@@ -4,6 +4,7 @@
 #include <set>
 #include <map>
 #include <editor_resource.h>
+#include <glm/glm.hpp>
 
 class Material;
 
