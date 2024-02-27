@@ -14,6 +14,7 @@ public:
     void SetAsRenderTarget();
     void SetAsReadTarget();
     void BindFrameBuffer();
+    static void ClearBufferBinding() { glBindBuffer(GL_FRAMEBUFFER, 0); }
 
 protected:
     virtual void CreateFrameBuffer(int _width, int _height) = 0;

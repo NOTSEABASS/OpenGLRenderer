@@ -153,7 +153,7 @@ void PostProcess::EndRender()
     write_rt->SetAsReadTarget();
     read_rt->SetAsRenderTarget();
     glBlitFramebuffer(0, 0, read_rt->width, read_rt->height, 0, 0, write_rt->width, write_rt->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Binds both READ and WRITE framebuffer to default framebuffer
+    FrameBufferTexture::ClearBufferBinding(); // Binds both READ and WRITE framebuffer to default framebuffer
 }
 
 void PostProcess::Execute(unsigned int quad)
