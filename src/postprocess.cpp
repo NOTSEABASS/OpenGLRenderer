@@ -8,7 +8,7 @@ PostProcessManager::PostProcessManager(int screen_width, int screen_height, Dept
 {
     is_editor = true;
     name = "post process manager";
-    atr_ppm = new ATR_PostProcessManager();
+    atr_ppm = new ATR_PostProcessManager(this);
 
     read_rt = new RenderTexture(screen_width, screen_height);
     write_rt = new RenderTexture(screen_width, screen_height);
@@ -24,11 +24,6 @@ PostProcessManager::~PostProcessManager() {}
 void PostProcessManager::RenderAttribute()
 {
     atr_ppm->UI_Implement();
-
-    for (auto p : postprocess_list)
-    {
-        p->atr_ppn->UI_Implement();
-    }
 }
 
 void PostProcessManager::InitPostProcess()
@@ -64,11 +59,43 @@ void PostProcessManager::ResizeRenderArea(int x, int y)
 void PostProcessManager::AddPostProcess(PostProcess* p)
 {
     postprocess_list.push_back(p);
+    atr_ppm->RefreshAllNode();
 }
 
 void PostProcessManager::RemovePostProcess(PostProcess* p)
 {
-    postprocess_list.remove(p);
+    for (std::vector<PostProcess*>::iterator iter = postprocess_list.begin(); iter != postprocess_list.end(); iter = next(iter))
+    {
+        if (*iter == p)
+        {
+            postprocess_list.erase(iter);
+        }
+    }
+    atr_ppm->RefreshAllNode();
+}
+
+void PostProcessManager::MoveUpPostProcessOnIndex(int index)
+{
+    if (index - 1 < 0 || index > postprocess_list.size())
+    {
+        return;
+    }
+
+    auto tmp = postprocess_list[index];
+    postprocess_list[index] = postprocess_list[index - 1];
+    postprocess_list[index - 1] = tmp;
+}
+
+void PostProcessManager::MoveDownPostProcessOnIndex(int index)
+{
+    if (index < 0 || index + 1 > postprocess_list.size())
+    {
+        return;
+    }
+
+    auto tmp = postprocess_list[index];
+    postprocess_list[index] = postprocess_list[index + 1];
+    postprocess_list[index + 1] = tmp;
 }
 
 void PostProcessManager::ExecutePostProcessList()

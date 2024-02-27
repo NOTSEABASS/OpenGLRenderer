@@ -31,7 +31,7 @@ Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -
 
 int main()
 {
-    RendererWindow main_window(&camera, "Tiny-Renderer(v1.1.0)", WindowSize(window_width, window_height));
+    RendererWindow main_window(&camera, "Tiny-Renderer(v1.2.2)", WindowSize(window_width, window_height));
     // Create scene
     Scene* scene = new Scene(&main_window);
     main_window.AttatchObserver(&scene->render_pipeline);
@@ -52,12 +52,14 @@ int main()
     Model *M_cube       = new Model(FileSystem::FileSystem::GetContentPath() / "Models/cube.fbx");
     // build and compile our shader program
     // ------------------------------------
-    Shader *default_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
-                                            FileSystem::GetContentPath() / "Shader/default.fs",
-                                            true);
+    // Shader *default_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
+    //                                         FileSystem::GetContentPath() / "Shader/default.fs",
+    //                                         true);
+
     Shader *color_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/color.vs",
                                             FileSystem::GetContentPath() / "Shader/color.fs",
                                             true);
+
     Shader *model_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
                                             FileSystem::GetContentPath() / "Shader/model.fs",
                                             true);
@@ -78,7 +80,11 @@ int main()
                                             FileSystem::GetContentPath() / "Shader/bloom.fs",
                                             true);
 
-    default_shader->LoadShader();
+    // Shader *raymarching_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+    //                                             FileSystem::GetContentPath() / "Shader/rayMarching.fs",
+    //                                             true);
+
+    // default_shader->LoadShader();
     color_shader->LoadShader();
     model_shader->LoadShader();
     PBR_shader->LoadShader();
@@ -86,6 +92,7 @@ int main()
     inverse_shader->LoadShader();
     blur_shader->LoadShader();
     bloom_shader->LoadShader();
+    // raymarching_shader->LoadShader();
 
     // Create a post process manager
     PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depth_texture);
@@ -96,6 +103,7 @@ int main()
     // Post process for test
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( inverse_shader, "inverse", false));
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( blur_shader, "Blur", false ));
+    // ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( raymarching_shader, "RayMarching", false ));
     ppm->AddPostProcess( ppm->CreatePostProcess<BloomProcess>( bloom_shader, "Bloom", false ));
     // Add a gamma correct post process
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( gamma_correcting_shader, "Gamma correction" ));

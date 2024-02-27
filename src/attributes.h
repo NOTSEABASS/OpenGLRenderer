@@ -180,14 +180,17 @@ public:
     virtual ~ATR_BloomProcessNode()      override;
 };
 
+class PostProcessManager;
 class ATR_PostProcessManager : public Attribute
 {
 public:
-    ATR_PostProcessManager();
+    ATR_PostProcessManager(PostProcessManager* manager);
     virtual void UI_Implement()         override;
     virtual ~ATR_PostProcessManager()   override;
+    void RefreshAllNode();
 
 private:
-    std::list<ATR_PostProcessNode*> atr_pps;
+    PostProcessManager* ppm;
+    std::vector<ATR_PostProcessNode*> atr_pps;
 };
 

@@ -81,11 +81,13 @@ private:
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
     };
-    std::list<PostProcess*> postprocess_list;
+    std::vector<PostProcess*> postprocess_list;
     ATR_PostProcessManager* atr_ppm;
     void InitPostProcess();
 
 public:
+    friend class ATR_PostProcessManager;
+    
     PostProcessManager(int screen_width, int screen_height,  DepthTexture* _depthTexture);
     ~PostProcessManager();
 
@@ -97,6 +99,8 @@ public:
 
     void AddPostProcess(PostProcess* p);
     void RemovePostProcess(PostProcess* p);
+    void MoveUpPostProcessOnIndex(int index);
+    void MoveDownPostProcessOnIndex(int index);
     void ExecutePostProcessList();
     /******************************************
     * Delete the origin rt and create a new one

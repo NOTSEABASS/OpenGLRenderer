@@ -274,15 +274,50 @@ void ATR_Light::UI_Implement()
     ImGui::ColorEdit3("Light Color", color);
 }
 
-ATR_PostProcessManager::ATR_PostProcessManager(){}
+ATR_PostProcessManager::ATR_PostProcessManager(PostProcessManager* manager) : ppm(manager) 
+{
+    RefreshAllNode();
+}
+
+
 ATR_PostProcessManager::~ATR_PostProcessManager() {}
+
+void ATR_PostProcessManager::RefreshAllNode()
+{
+    atr_pps.clear();
+    for (auto atr_p : ppm->postprocess_list)
+    {
+        atr_pps.push_back(atr_p->atr_ppn);
+    }
+}
 
 void ATR_PostProcessManager::UI_Implement()
 {
-    ImGui::SeparatorText("post process manager");
-    for (auto atr_p : atr_pps)
+    ImGui::Text("post process manager");
+    for (int i = 0; i < atr_pps.size(); i++)
     {
-        atr_p->UI_Implement();
+        atr_pps[i]->UI_Implement();
+        if(ImGui::Button(("Move Up##" + std::to_string(atr_pps[i]->id)).c_str(), ImVec2(60,20)))
+        {
+            if (i > 0)
+            {
+                auto tmp = atr_pps[i-1];
+                atr_pps[i-1] = atr_pps[i];
+                atr_pps[i] = tmp;
+                ppm->MoveUpPostProcessOnIndex(i);
+            }
+        }
+        ImGui::SameLine();
+        if(ImGui::Button(("Move Down##" + std::to_string(atr_pps[i]->id)).c_str(), ImVec2(80,20)))
+        {
+            if (i + 1 < atr_pps.size())
+            {
+                auto tmp = atr_pps[i+1];
+                atr_pps[i+1] = atr_pps[i];
+                atr_pps[i] = tmp;
+                ppm->MoveDownPostProcessOnIndex(i);
+            }
+        }
     }
 }
 
@@ -294,15 +329,14 @@ ATR_PostProcessNode::~ATR_PostProcessNode() {}
 void ATR_PostProcessNode::UI_Implement()
 {
     ImGui::SeparatorText(postprocess->name.c_str());
-    ImGui::Checkbox(("enabled##" + std::to_string(id)).c_str(), &postprocess->enabled);   
+    ImGui::Checkbox(("enabled##" + std::to_string(id)).c_str(), &postprocess->enabled);
 }
 
 ATR_BloomProcessNode::ATR_BloomProcessNode(PostProcess* _bloomprocess) : ATR_PostProcessNode(_bloomprocess) {}
 ATR_BloomProcessNode::~ATR_BloomProcessNode() {}
 void ATR_BloomProcessNode::UI_Implement()
 {
-    ImGui::SeparatorText(postprocess->name.c_str());
-    ImGui::Checkbox(("enabled##" + std::to_string(id)).c_str(), &postprocess->enabled);
+    ATR_PostProcessNode::UI_Implement();
     ImGui::DragFloat("threshold", &dynamic_cast<BloomProcess*>(postprocess)->threshold, 0.05f);
     ImGui::DragFloat("exposure", &dynamic_cast<BloomProcess*>(postprocess)->exposure, 0.05f);
 }
