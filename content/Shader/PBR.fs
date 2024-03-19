@@ -12,6 +12,7 @@ in VS_OUT{
     vec3 B;
     vec3 N;
     vec4 FragPosLightSpace;
+    mat4 ViewMat;
 } fs_in;
 
 struct Texture2D

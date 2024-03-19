@@ -20,21 +20,27 @@ void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRe
 
 RenderPipeline::RenderPipeline(RendererWindow* _window) : window(_window) 
 {
-    depth_texture = new DepthTexture(window->Width(), window->Height());
-    shadow_map = new DepthTexture(shadow_map_setting.shadow_map_size, shadow_map_setting.shadow_map_size);
-    depth_shader = new Shader(  FileSystem::GetContentPath() / "Shader/depth.vs",
-                                FileSystem::GetContentPath() / "Shader/depth.fs",
-                                true);
-    grid_shader = new Shader(   FileSystem::GetContentPath() / "Shader/grid.vs",
-                                FileSystem::GetContentPath() / "Shader/grid.fs",
-                                true);
+    normal_texture  = new RenderTexture(window->Width(), window->Height());
+    depth_texture   = new DepthTexture(window->Width(), window->Height());
+    shadow_map      = new DepthTexture(shadow_map_setting.shadow_map_size, shadow_map_setting.shadow_map_size);
+    depth_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/depth.vs",
+                                    FileSystem::GetContentPath() / "Shader/depth.fs",
+                                    true);
+    normal_shader   = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
+                                    FileSystem::GetContentPath() / "Shader/normal.fs",
+                                    true);
+    grid_shader     = new Shader(   FileSystem::GetContentPath() / "Shader/grid.vs",
+                                    FileSystem::GetContentPath() / "Shader/grid.fs",
+                                    true);
     depth_shader->LoadShader();
+    normal_shader->LoadShader();
     grid_shader->LoadShader();
 }
 
 RenderPipeline::~RenderPipeline()
 {
     delete depth_texture;
+    delete normal_texture;
     delete shadow_map;
     delete depth_shader;
     delete grid_shader;
@@ -59,6 +65,7 @@ void RenderPipeline::OnWindowSizeChanged(int width, int height)
     // Resize depth texture as well
     delete depth_texture;
     depth_texture = new DepthTexture(width, height);
+    normal_texture = new RenderTexture(width, height);
 }
 
 /*********************
@@ -136,6 +143,40 @@ void RenderPipeline::ProcessZPrePass()
             sm->meshRenderers[i]->PureDraw();
         }
     }
+    FrameBufferTexture::ClearBufferBinding();
+}
+
+void RenderPipeline::ProcessNormalPass()
+{
+    glClearColor(0.5,0.5,1, 1);
+    glViewport(0, 0, window->Width(), window->Height());
+    glEnable(GL_DEPTH_TEST);
+    normal_texture->BindFrameBuffer();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // view/projection transformations
+    Camera* camera = window->render_camera;
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)window->Width() / (float)window->Height(), 0.1f, 10000.0f);
+    glm::mat4 view = camera->GetViewMatrix();
+
+    for (std::map<unsigned int, SceneModel *>::iterator it = ModelQueueForRender.begin(); it != ModelQueueForRender.end(); it++)
+    {
+        SceneModel *sm = it->second;
+        normal_shader->use();
+        Transform *transform = sm->atr_transform->transform;
+        glm::mat4 m = glm::mat4(1.0f);
+        m = transform->GetTransformMatrix();
+        normal_shader->setMat4("model", m);                // M
+        normal_shader->setMat4("view", view);              // V    
+        normal_shader->setMat4("projection", projection);  // P
+
+        
+        for (int i = 0; i < sm->meshRenderers.size(); i++)
+        {
+            // Draw without any material
+            sm->meshRenderers[i]->PureDraw();
+        }
+    }
+    FrameBufferTexture::ClearBufferBinding();
 }
 
 /*********************
@@ -305,6 +346,9 @@ void RenderPipeline::Render()
 
     // Z-PrePass
     ProcessZPrePass();
+
+    // Normal Pass
+    ProcessNormalPass();
 
 
     // Pre Render Setting

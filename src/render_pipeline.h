@@ -8,6 +8,7 @@ class SceneLight;
 class Camera;
 class Shader;
 class DepthTexture;
+class RenderTexture;
 class RendererWindow;
 class PostProcessManager;
 
@@ -32,6 +33,7 @@ public:
     float *clear_color;
     SceneLight* global_light;
     PostProcessManager *postprocess_manager = nullptr;
+    RenderTexture* normal_texture;
     DepthTexture* depth_texture;
     DepthTexture* shadow_map;
 
@@ -40,9 +42,11 @@ private:
     RendererWindow *window;
     Shader* depth_shader;
     Shader* grid_shader;
+    Shader* normal_shader;
 
     void ProcessZPrePass        ();
     void ProcessShadowPass      ();
+    void ProcessNormalPass      ();
     void ProcessColorPass       ();
     void RenderGizmos           ();
 

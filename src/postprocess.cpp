@@ -4,7 +4,7 @@
 #include <renderer_console.h>
 
 
-PostProcessManager::PostProcessManager(int screen_width, int screen_height, DepthTexture* _depthTexture) : depthTexture(_depthTexture)
+PostProcessManager::PostProcessManager(int screen_width, int screen_height, DepthTexture* _depthTexture, RenderTexture* _normalTexture) : depthTexture(_depthTexture), normalTexture(_normalTexture)
 {
     is_editor = true;
     name = "post process manager";
@@ -12,7 +12,7 @@ PostProcessManager::PostProcessManager(int screen_width, int screen_height, Dept
 
     read_rt = new RenderTexture(screen_width, screen_height);
     write_rt = new RenderTexture(screen_width, screen_height);
-    default_framebuffer_shader = new Shader (   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+    default_framebuffer_shader  = new Shader (  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                                 FileSystem::GetContentPath() / "Shader/framebuffer.fs",
                                                 true);
     default_framebuffer_shader->LoadShader();
@@ -44,9 +44,11 @@ void PostProcessManager::ResizeRenderArea(int x, int y)
 {
     delete read_rt;
     delete write_rt;
+    delete normalTexture;
 
     read_rt = new RenderTexture(x, y);
     write_rt = new RenderTexture(x, y);
+    normalTexture = new RenderTexture(x, y);
 
     for (auto postprocess : postprocess_list)
     {

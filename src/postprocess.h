@@ -88,7 +88,7 @@ private:
 public:
     friend class ATR_PostProcessManager;
     
-    PostProcessManager(int screen_width, int screen_height,  DepthTexture* _depthTexture);
+    PostProcessManager(int screen_width, int screen_height, DepthTexture* _depthTexture, RenderTexture* _normalTexture);
     ~PostProcessManager();
 
     template<class T>
@@ -118,5 +118,6 @@ public:
     RenderTexture   *write_rt;
 
     DepthTexture* depthTexture;
+    RenderTexture* normalTexture;
 };
 

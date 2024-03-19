@@ -16,6 +16,7 @@ out VS_OUT{
     vec3 B;
     vec3 N;
     vec4 FragPosLightSpace;
+    mat4 ViewMat;
 } vs_out;
 
 
@@ -47,5 +48,6 @@ void main()
     vs_out.LightColor = lightColor;
     vs_out.ViewPos = viewPos;
     vs_out.FragPosLightSpace = light_projection * light_view * vec4(vs_out.FragPos, 1.0);
+    vs_out.ViewMat = view;
     gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
 }

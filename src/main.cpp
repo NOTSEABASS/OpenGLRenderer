@@ -95,7 +95,7 @@ int main()
     // raymarching_shader->LoadShader();
 
     // Create a post process manager
-    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depth_texture);
+    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depth_texture, scene->render_pipeline.normal_texture);
     scene->RegisterSceneObject(ppm);
     // Assign postprocess manager to scene's renderer pipeline
     scene->render_pipeline.postprocess_manager = ppm;
