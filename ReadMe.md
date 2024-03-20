@@ -5,6 +5,9 @@ This is a tiny-renderer project written in c++ based on OpenGL
 <img src="/img/renderer-preview.gif" style="zoom:50%;" />
 
 ## UpdateInfo
+Update 1.2.3
+- Add a simple SSAO
+
 Update 1.2.2
 - Add PostProcess Move Up/Down Button
   
