@@ -63,6 +63,18 @@ private:
     RenderTexture *pingpong_buffer[2];
 };
 
+class SSAOProcess : public PostProcess
+{
+public:
+    SSAOProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled = true);
+    ~SSAOProcess();
+
+    virtual void Execute(unsigned int quad);
+
+    RenderTexture* normalTexture;
+    DepthTexture* depthTexture;
+};
+
 /************************************************************
 * Post process manager:
 * Will process all post process in a user-defined order.

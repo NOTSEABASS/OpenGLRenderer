@@ -275,3 +275,37 @@ void BloomProcess::Execute(unsigned int quad)
 
     EndRender();
 }
+
+SSAOProcess::SSAOProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled) : PostProcess(_rrt, _wrt, _shader, _name, _enabled)
+{
+
+}
+
+SSAOProcess::~SSAOProcess()
+{
+    delete atr_ppn;
+}
+
+void SSAOProcess::Execute(unsigned int quad)
+{
+    BeiginRender();
+
+    shader->use();
+    glUniform1i(glGetUniformLocation(shader->ID, "screenTexture"), 0);
+    glUniform1i(glGetUniformLocation(shader->ID, "depthTexture"), 1);
+    glUniform1i(glGetUniformLocation(shader->ID, "normalTexture"), 2);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, depthTexture->color_buffer);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, normalTexture->color_buffer);
+
+    glBindVertexArray(quad);
+    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    EndRender();
+}

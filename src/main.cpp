@@ -76,8 +76,12 @@ int main()
                                             FileSystem::GetContentPath() / "Shader/blur.fs",
                                             true);
 
-    Shader *bloom_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+    Shader *bloom_shader    = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                             FileSystem::GetContentPath() / "Shader/bloom.fs",
+                                            true);
+
+    Shader *ssao_shader     = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                            FileSystem::GetContentPath() / "Shader/SSAO.fs",
                                             true);
 
     // Shader *raymarching_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
@@ -92,6 +96,7 @@ int main()
     inverse_shader->LoadShader();
     blur_shader->LoadShader();
     bloom_shader->LoadShader();
+    ssao_shader->LoadShader();
     // raymarching_shader->LoadShader();
 
     // Create a post process manager
@@ -107,6 +112,12 @@ int main()
     ppm->AddPostProcess( ppm->CreatePostProcess<BloomProcess>( bloom_shader, "Bloom", false ));
     // Add a gamma correct post process
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( gamma_correcting_shader, "Gamma correction" ));
+
+    auto ssao_process = ppm->CreatePostProcess<SSAOProcess>( ssao_shader, "SSAO" );
+    ssao_process->depthTexture = ppm->depthTexture;
+    ssao_process->normalTexture = ppm->normalTexture;
+    // ssao_process->
+    ppm->AddPostProcess( ssao_process );
 
     // Render loop
     // -----------
