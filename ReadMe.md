@@ -2,7 +2,7 @@ This is a tiny-renderer project written in c++ based on OpenGL
 
 <img src="/img/sample_gif_1.gif" style="zoom:50%;" />
 
-<img src="/img/sample_gif_2.gif" style="zoom:50%;" />
+<img src="/img/renderer-preview.gif" style="zoom:50%;" />
 
 ## UpdateInfo
 Update 1.2.2

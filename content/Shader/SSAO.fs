@@ -30,5 +30,5 @@ void main()
     ao /= 400;
     ao = ao * ao;
     ao = 1-ao;
-    FragColor = vec4(col.r * ao,col.b * ao,col.g * ao ,1);
+    FragColor = vec4(col.r * ao,col.g * ao,col.b * ao ,1);
 } 
