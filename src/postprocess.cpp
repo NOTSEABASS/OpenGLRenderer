@@ -113,6 +113,7 @@ void PostProcessManager::ExecutePostProcessList()
     }
     
     // Draw to default buffer
+    // FrameBufferTexture::ClearBufferBinding();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // clear all relevant buffers
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
@@ -256,7 +257,7 @@ void BloomProcess::Execute(unsigned int quad)
         if (first_iteration)
             first_iteration = false;
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    FrameBufferTexture::ClearBufferBinding();
 
     // Merge blur result and screen texture
     BeiginRender();

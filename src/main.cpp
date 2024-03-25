@@ -52,9 +52,9 @@ int main()
     Model *M_cube       = new Model(FileSystem::FileSystem::GetContentPath() / "Models/cube.fbx");
     // build and compile our shader program
     // ------------------------------------
-    // Shader *default_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
-    //                                         FileSystem::GetContentPath() / "Shader/default.fs",
-    //                                         true);
+    Shader *default_shader  = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
+                                            FileSystem::GetContentPath() / "Shader/default.fs",
+                                            true);
 
     Shader *color_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/color.vs",
                                             FileSystem::GetContentPath() / "Shader/color.fs",
@@ -88,7 +88,7 @@ int main()
     //                                             FileSystem::GetContentPath() / "Shader/rayMarching.fs",
     //                                             true);
 
-    // default_shader->LoadShader();
+    default_shader->LoadShader();
     color_shader->LoadShader();
     model_shader->LoadShader();
     PBR_shader->LoadShader();
@@ -110,14 +110,15 @@ int main()
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( blur_shader, "Blur", false ));
     // ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( raymarching_shader, "RayMarching", false ));
     ppm->AddPostProcess( ppm->CreatePostProcess<BloomProcess>( bloom_shader, "Bloom", false ));
-    // Add a gamma correct post process
-    ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( gamma_correcting_shader, "Gamma correction" ));
 
     auto ssao_process = ppm->CreatePostProcess<SSAOProcess>( ssao_shader, "SSAO" );
     ssao_process->depthTexture = ppm->depthTexture;
     ssao_process->normalTexture = ppm->normalTexture;
     // ssao_process->
     ppm->AddPostProcess( ssao_process );
+
+    // Add a gamma correct post process
+    ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( gamma_correcting_shader, "Gamma correction" ));
 
     // Render loop
     // -----------

@@ -68,7 +68,7 @@ void RenderTexture::CreateFrameBuffer(int _width, int _height)
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         RendererConsole::GetInstance()->AddError("[error] FRAMEBUFFER: Framebuffer is not complete!"); 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    FrameBufferTexture::ClearBufferBinding();
 }
 
 BloomRenderBuffer::BloomRenderBuffer(int _width, int _height) : RenderTexture(_width, _height)
@@ -112,7 +112,7 @@ void BloomRenderBuffer::CreateFrameBuffer(int _width, int _height)
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         RendererConsole::GetInstance()->AddError("[error] FRAMEBUFFER: Framebuffer is not complete!"); 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    FrameBufferTexture::ClearBufferBinding();
 }
 
 BloomRenderBuffer::~BloomRenderBuffer()
@@ -161,5 +161,5 @@ void DepthTexture::CreateFrameBuffer(int _width, int _height)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, color_buffer, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    FrameBufferTexture::ClearBufferBinding();
 }
