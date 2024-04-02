@@ -60,6 +60,10 @@ int main()
                                             FileSystem::GetContentPath() / "Shader/color.fs",
                                             true);
 
+    Shader *tex_shader     = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
+                                            FileSystem::GetContentPath() / "Shader/texture.fs",
+                                            true);
+
     Shader *model_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/default.vs",
                                             FileSystem::GetContentPath() / "Shader/model.fs",
                                             true);
@@ -90,6 +94,7 @@ int main()
 
     default_shader->LoadShader();
     color_shader->LoadShader();
+    tex_shader->LoadShader();
     model_shader->LoadShader();
     PBR_shader->LoadShader();
     gamma_correcting_shader->LoadShader();

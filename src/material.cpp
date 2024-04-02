@@ -11,6 +11,7 @@ Material::Material()                                                    { id = c
 Material::~Material()                                                   { RendererConsole::GetInstance()->AddLog("delete Material");        }
 ModelMaterial::~ModelMaterial()                                         { RendererConsole::GetInstance()->AddLog("delete Model Material");  }
 PBRMaterial::~PBRMaterial()                                             { RendererConsole::GetInstance()->AddLog("delete PBR Material");    }
+UnlitMaterial::~UnlitMaterial()                                         { RendererConsole::GetInstance()->AddLog("delete Unlit Material");  }
 bool Material::IsValid()                                                { return shader != nullptr;                                         }
 
 void Material::SetTexture(Texture2D **slot, Texture2D *new_tex)
@@ -72,6 +73,10 @@ Material* MaterialManager::CreateMaterialByType(EMaterialType type)
     
     case EMaterialType::PBR_MATERIAL :
         return new PBRMaterial();
+        break;
+
+    case EMaterialType::Unlit_MATERIAL :
+        return new UnlitMaterial();
         break;
 
     default:
@@ -137,3 +142,18 @@ void PBRMaterial::Setup(std::vector<Texture2D *> default_textures)
 { 
     DefaultSetup(default_textures);
 }
+
+UnlitMaterial::UnlitMaterial() : Material()
+{
+    shader = Shader::LoadedShaders["texture.fs"];
+
+    albedo_map = EditorContent::editor_tex["default_tex"];
+    material_variables.allTextures.push_back(new MaterialSlot<MaterialTexture2D>("albedo_map", MaterialTexture2D(&albedo_map)));
+    albedo_map->textureRefs.AddRef(this);
+}
+
+void UnlitMaterial::Setup(std::vector<Texture2D *> default_textures)
+{ 
+    DefaultSetup(default_textures);
+}
+

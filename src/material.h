@@ -49,7 +49,8 @@ struct MaterialVariables
 enum EMaterialType
 {
 	MODEL_MATERIAL,
-	PBR_MATERIAL
+	PBR_MATERIAL,
+	Unlit_MATERIAL
 };
 
 class MaterialManager : public Singleton<MaterialManager>
@@ -119,5 +120,17 @@ public:
 public:
 	PBRMaterial();
     ~PBRMaterial() 											override;
+	void Setup(std::vector<Texture2D*> default_textures) 	override;
+};
+
+class UnlitMaterial : public Material
+{
+public:
+	const std::string name = "Unlit Material";
+
+	Texture2D* albedo_map 			= EditorContent::editor_tex["default_tex"];
+public:
+	UnlitMaterial();
+    ~UnlitMaterial() 										override;
 	void Setup(std::vector<Texture2D*> default_textures) 	override;
 };

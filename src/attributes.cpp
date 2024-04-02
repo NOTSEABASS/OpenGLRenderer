@@ -251,7 +251,7 @@ void ATR_MeshRenderer::UI_Implement()
         ImGui::Checkbox(("cast shadow##"+std::to_string(meshRenderer->mesh->VAO)).c_str(), &meshRenderer->cast_shadow);
         ImGui::SeparatorText("Material");
 
-        const char* material_types[2] = {"Model", "PBR"};
+        const char* material_types[3] = {"Model", "PBR", "Unlit"};
         std::string item = "material##" + std::to_string(id);
         ImGui::Combo(item.c_str(), &cur_mat, material_types, IM_ARRAYSIZE(material_types));
         if (prev_mat != cur_mat)
