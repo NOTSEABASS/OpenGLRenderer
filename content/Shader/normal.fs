@@ -28,7 +28,6 @@ vec4 SampleTexture(Texture2D tex, vec2 uv)
 }
 
 uniform sampler2D shadowMap;
-uniform Texture2D normal_map;
 uniform float normalStrength;
 
 float near = 0.1; 
@@ -46,17 +45,10 @@ vec3 saturate(vec3 x)
 
 void main()
 {    
-    vec3 normalWS = SampleTexture(normal_map, fs_in.TexCoords).rgb;
-
-    normalWS = normalize(normalWS * 2.0 - 1.0);
-    normalWS.xy *= normalStrength;
-    mat3 TBN = mat3(fs_in.T, fs_in.B, fs_in.N);
-    normalWS = normalize(TBN * normalWS);
+    vec3 normalWS = fs_in.N;
     mat4 viewInverse = transpose(inverse(fs_in.ViewMat));
     vec4 normalVS = viewInverse * vec4(normalWS,1);
     normalVS.x = normalVS.x / 2.0 + 0.5;
     normalVS.y = normalVS.y / 2.0 + 0.5;
-    vec3 worldTangent = normalize(vec3(fs_in.T));
-    vec3 worldBitangent = normalize(vec3(fs_in.B));
     FragColor = vec4(normalVS.xyz, 1.0);
 }

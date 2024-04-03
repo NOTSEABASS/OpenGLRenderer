@@ -585,6 +585,8 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
             if (ImGui::BeginTabItem("Loaded Shaders"))
             {
                 static int selected_shader = -1;
+                ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
+                ImGui::BeginChild("Shader List", ImVec2(ImGui::GetContentRegionAvail().x - 20, preview_height - 20), ImGuiChildFlags_None, window_flags);
                 for (int n = 0; n < shader_names.size(); n++)
                 {
                     if (ImGui::Selectable(shader_names[n].c_str(), selected_shader == n))
@@ -616,9 +618,12 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
                         ImGui::EndPopup();
                     }
                     ImGui::SetItemTooltip("Right-click to open popup");
+                    
                 }
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
+                
 
             if (ImGui::BeginTabItem("Loaded Textures"))
             {

@@ -105,7 +105,7 @@ int main()
     // raymarching_shader->LoadShader();
 
     // Create a post process manager
-    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height(), scene->render_pipeline.depth_texture, scene->render_pipeline.normal_texture);
+    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height());
     scene->RegisterSceneObject(ppm);
     // Assign postprocess manager to scene's renderer pipeline
     scene->render_pipeline.postprocess_manager = ppm;
@@ -114,13 +114,13 @@ int main()
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( inverse_shader, "inverse", false));
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( blur_shader, "Blur", false ));
     // ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( raymarching_shader, "RayMarching", false ));
-    ppm->AddPostProcess( ppm->CreatePostProcess<BloomProcess>( bloom_shader, "Bloom", false ));
 
-    auto ssao_process = ppm->CreatePostProcess<SSAOProcess>( ssao_shader, "SSAO" );
-    ssao_process->depthTexture = ppm->depthTexture;
-    ssao_process->normalTexture = ppm->normalTexture;
-    // ssao_process->
+    auto ssao_process = ppm->CreatePostProcess<SSAOProcess>( ssao_shader, "SSAO" , false);
+    ssao_process->depthTexture = RenderPipeline::depth_texture;
+    ssao_process->normalTexture = RenderPipeline::normal_texture;
     ppm->AddPostProcess( ssao_process );
+
+    ppm->AddPostProcess( ppm->CreatePostProcess<BloomProcess>( bloom_shader, "Bloom", false ));
 
     // Add a gamma correct post process
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( gamma_correcting_shader, "Gamma correction" ));

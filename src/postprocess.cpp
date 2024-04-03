@@ -2,9 +2,9 @@
 #include <render_texture.h>
 #include <renderer_window.h>
 #include <renderer_console.h>
+#include <render_pipeline.h>
 
-
-PostProcessManager::PostProcessManager(int screen_width, int screen_height, DepthTexture* _depthTexture, RenderTexture* _normalTexture) : depthTexture(_depthTexture), normalTexture(_normalTexture)
+PostProcessManager::PostProcessManager(int screen_width, int screen_height)
 {
     is_editor = true;
     name = "post process manager";
@@ -44,11 +44,9 @@ void PostProcessManager::ResizeRenderArea(int x, int y)
 {
     delete read_rt;
     delete write_rt;
-    delete normalTexture;
 
     read_rt = new RenderTexture(x, y);
     write_rt = new RenderTexture(x, y);
-    normalTexture = new RenderTexture(x, y);
 
     for (auto postprocess : postprocess_list)
     {
@@ -257,7 +255,7 @@ void BloomProcess::Execute(unsigned int quad)
         if (first_iteration)
             first_iteration = false;
     }
-    FrameBufferTexture::ClearBufferBinding();
+    glBindBuffer(GL_FRAMEBUFFER, 0);
 
     // Merge blur result and screen texture
     BeiginRender();
@@ -270,6 +268,7 @@ void BloomProcess::Execute(unsigned int quad)
     glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, pingpong_buffer[1]->color_buffer);
+    glActiveTexture(GL_TEXTURE0);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
@@ -301,7 +300,7 @@ void SSAOProcess::Execute(unsigned int quad)
     glBindTexture(GL_TEXTURE_2D, depthTexture->color_buffer);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, normalTexture->color_buffer);
-
+    glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(quad);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
