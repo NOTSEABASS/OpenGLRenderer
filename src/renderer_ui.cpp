@@ -380,6 +380,30 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
                     }
                     ImGui::DragFloat("shadow distance", &scene->render_pipeline.shadow_map_setting.shadow_distance);
                 }
+                ImGui::SeparatorText("Preview GBuffers");
+                {
+                    ImGui::Checkbox("Preview GBuffers", &EditorSettings::UsePreviewGBuffer);
+                    if (EditorSettings::UsePreviewGBuffer)
+                    {
+                        static int gbuffer_idx = -1;
+                        if (ImGui::BeginCombo("GBuffers",EditorSettings::GBuffers[EditorSettings::CurrentRenderBuffer].c_str()))
+                        {
+                            for (int n = 0; n < EditorSettings::GBuffers.size() ; n++)
+                            {
+                                const bool is_selected = (gbuffer_idx == n);
+                                if (ImGui::Selectable(EditorSettings::GBuffers[n].c_str(), is_selected))
+                                {
+                                    gbuffer_idx = n;
+                                    EditorSettings::CurrentRenderBuffer = (EGBuffer)gbuffer_idx;
+                                }
+
+                                if (is_selected)
+                                    ImGui::SetItemDefaultFocus();
+                            }
+                            ImGui::EndCombo();
+                        }
+                    }
+                }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Window"))

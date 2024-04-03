@@ -120,7 +120,30 @@ void PostProcessManager::ExecutePostProcessList()
     default_framebuffer_shader->use();
     glBindVertexArray(quadVAO);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-    glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);	// use the color attachment texture as the texture of the quad plane
+    if (EditorSettings::UsePreviewGBuffer)
+    {
+        switch (EditorSettings::CurrentRenderBuffer)
+        {
+        case EGBuffer::Fragpos :
+            glBindTexture(GL_TEXTURE_2D, RenderPipeline::fragpos_texture->color_buffer);
+            break;
+
+        case EGBuffer::Depth :
+            glBindTexture(GL_TEXTURE_2D, RenderPipeline::depth_texture->color_buffer);
+            break;
+        
+        case EGBuffer::Normal :
+            glBindTexture(GL_TEXTURE_2D, RenderPipeline::normal_texture->color_buffer);
+            break;
+
+        default:
+            glBindTexture(GL_TEXTURE_2D, RenderPipeline::fragpos_texture->color_buffer);
+            break;
+        }
+    }
+    else{
+        glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);	// use the color attachment texture as the texture of the quad plane
+    }
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 

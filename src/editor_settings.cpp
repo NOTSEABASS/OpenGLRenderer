@@ -20,4 +20,7 @@ std::vector<WindowSize> EditorSettings::window_size_list = {    WindowSize(800, 
                                                                 WindowSize(2560, 1600),
                                                                 WindowSize(2880, 1620),
                                                                 WindowSize(3840, 2160) };
-                                                    
+
+bool EditorSettings::UsePreviewGBuffer = false;
+std::vector<std::string> EditorSettings::GBuffers = { "Fragpos", "Normal", "Depth" };
+EGBuffer EditorSettings::CurrentRenderBuffer = EGBuffer::Fragpos;

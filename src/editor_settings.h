@@ -19,6 +19,13 @@ struct WindowSize
     }
 };
 
+enum EGBuffer
+{
+    Fragpos = 0,
+    Normal = 1,
+    Depth = 2
+};
+
 static class EditorSettings
 {
 public:
@@ -26,4 +33,7 @@ public:
     static bool UsePostProcess;
     static bool DrawGizmos;
     static std::vector<WindowSize> window_size_list;
+    static std::vector<std::string> GBuffers;
+    static EGBuffer CurrentRenderBuffer;
+    static bool UsePreviewGBuffer;
 };
