@@ -10,7 +10,9 @@ class RenderTexture;
 class BloomRenderBuffer;
 class RendererWindow;
 class Shader;
+class Camera;
 class DepthTexture;
+class RenderPipeline;
 
 /************************************************************
 * To call PostProcessManager::CreatePostProcess correctly,
@@ -68,11 +70,21 @@ class SSAOProcess : public PostProcess
 public:
     SSAOProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled = true);
     ~SSAOProcess();
-
+    virtual void OnRenderAreaResized(int x, int y);
     virtual void Execute(unsigned int quad);
 
+    Shader* ssao_shader;
+
+    std::vector<glm::vec3> ssaoKernel;
+    std::vector<glm::vec3> ssaoNoise;
+    unsigned int noiseTexture;
+
+    RenderTexture* ssaoTexture;
     RenderTexture* normalTexture;
+    RenderTexture* fragPosTexture;
     DepthTexture* depthTexture;
+
+    RendererWindow* renderWindow;
 };
 
 /************************************************************
@@ -100,7 +112,7 @@ private:
 public:
     friend class ATR_PostProcessManager;
     
-    PostProcessManager(int screen_width, int screen_height);
+    PostProcessManager(RenderPipeline* _pipeLine, int screen_width, int screen_height);
     ~PostProcessManager();
 
     template<class T>
@@ -128,5 +140,7 @@ public:
     
     RenderTexture   *read_rt;
     RenderTexture   *write_rt;
+
+    RenderPipeline* renderPipeline;
 };
 

@@ -5,10 +5,15 @@
 #include <scene.h>
 #include <shader.h>
 
+std::map<unsigned int, Scene*> Scene::LoadedScene;
+unsigned int Scene::next_scene_id = 0;
+
 Scene::Scene(RendererWindow *_window) : window(_window), render_pipeline(RenderPipeline(_window))
 {
     // Create a default light
     RegisterGlobalLight(new SceneLight("Global Light", true));
+    scene_id = next_scene_id++;
+    LoadedScene[scene_id] = this;
 }
 
 Scene::~Scene() {}

@@ -3,8 +3,10 @@
 #include <renderer_window.h>
 #include <renderer_console.h>
 #include <render_pipeline.h>
+#include <scene.h>
+#include <random>
 
-PostProcessManager::PostProcessManager(int screen_width, int screen_height)
+PostProcessManager::PostProcessManager(RenderPipeline* _pipeLine, int screen_width, int screen_height)
 {
     is_editor = true;
     name = "post process manager";
@@ -16,6 +18,9 @@ PostProcessManager::PostProcessManager(int screen_width, int screen_height)
                                                 FileSystem::GetContentPath() / "Shader/framebuffer.fs",
                                                 true);
     default_framebuffer_shader->LoadShader();
+
+    renderPipeline = _pipeLine;
+
     InitPostProcess();
 }
 
@@ -125,19 +130,19 @@ void PostProcessManager::ExecutePostProcessList()
         switch (EditorSettings::CurrentRenderBuffer)
         {
         case EGBuffer::Fragpos :
-            glBindTexture(GL_TEXTURE_2D, RenderPipeline::fragpos_texture->color_buffer);
+            glBindTexture(GL_TEXTURE_2D, renderPipeline->fragpos_texture->color_buffer);
             break;
 
         case EGBuffer::Depth :
-            glBindTexture(GL_TEXTURE_2D, RenderPipeline::depth_texture->color_buffer);
+            glBindTexture(GL_TEXTURE_2D, renderPipeline->depth_texture->color_buffer);
             break;
         
         case EGBuffer::Normal :
-            glBindTexture(GL_TEXTURE_2D, RenderPipeline::normal_texture->color_buffer);
+            glBindTexture(GL_TEXTURE_2D, renderPipeline->normal_texture->color_buffer);
             break;
 
         default:
-            glBindTexture(GL_TEXTURE_2D, RenderPipeline::fragpos_texture->color_buffer);
+            glBindTexture(GL_TEXTURE_2D, renderPipeline->fragpos_texture->color_buffer);
             break;
         }
     }
@@ -224,7 +229,7 @@ BloomProcess::~BloomProcess()
 
 void BloomProcess::OnRenderAreaResized(int x, int y)
 {
-    RendererConsole::GetInstance()->AddWarn("Resize PostProcess: %dx%d", x, y);
+    RendererConsole::GetInstance()->AddWarn("Resize Bloom PostProcess: %dx%d", x, y);
 
     delete bloom_buffer;
     bloom_buffer = new BloomRenderBuffer(x, y);
@@ -299,9 +304,49 @@ void BloomProcess::Execute(unsigned int quad)
     EndRender();
 }
 
+GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
+{
+    return a + f * (b - a);
+}
+
 SSAOProcess::SSAOProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled) : PostProcess(_rrt, _wrt, _shader, _name, _enabled)
 {
+    ssao_shader = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                FileSystem::GetContentPath() / "Shader/SSAO.fs",
+                                true);
+    ssao_shader->LoadShader();
+    ssaoTexture = new RenderTexture(_rrt->width, _rrt->height);
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // 随机浮点数，范围0.0 - 1.0
+    std::default_random_engine generator;
 
+    for (GLuint i = 0; i < 64; ++i)
+    {
+        glm::vec3 sample(
+            randomFloats(generator) * 2.0 - 1.0, 
+            randomFloats(generator) * 2.0 - 1.0, 
+            randomFloats(generator)
+        );
+        sample = glm::normalize(sample);
+        sample *= randomFloats(generator);
+        GLfloat scale = GLfloat(i) / 64.0; 
+        scale = lerp(0.1f, 1.0f, scale * scale);
+        sample *= scale;
+        ssaoKernel.push_back(sample);  
+    }
+
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
+        ssaoNoise.push_back(noise);
+    }
+
+    glGenTextures(1, &noiseTexture);
+    glBindTexture(GL_TEXTURE_2D, noiseTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 SSAOProcess::~SSAOProcess()
@@ -309,24 +354,67 @@ SSAOProcess::~SSAOProcess()
     delete atr_ppn;
 }
 
+void SSAOProcess::OnRenderAreaResized(int x, int y)
+{
+    RendererConsole::GetInstance()->AddWarn("Resize SSAO PostProcess: %dx%d", x, y);
+
+    delete ssaoTexture;
+    ssaoTexture = new RenderTexture(x, y);
+
+    normalTexture = Scene::LoadedScene[0]->render_pipeline.normal_texture;
+    depthTexture = Scene::LoadedScene[0]->render_pipeline.depth_texture;
+    fragPosTexture = Scene::LoadedScene[0]->render_pipeline.fragpos_texture;
+}
+
 void SSAOProcess::Execute(unsigned int quad)
 {
-    BeiginRender();
+    ssaoTexture->BindFrameBuffer();
+    ssao_shader->use();
+    glUniform1i(glGetUniformLocation(ssao_shader->ID, "screenTexture"), 0);
+    glUniform1i(glGetUniformLocation(ssao_shader->ID, "fragPosTexture"), 1);
+    glUniform1i(glGetUniformLocation(ssao_shader->ID, "depthTexture"), 2);
+    glUniform1i(glGetUniformLocation(ssao_shader->ID, "normalTexture"), 3);
+    glUniform1i(glGetUniformLocation(ssao_shader->ID, "texNoise"), 4);
 
-    shader->use();
-    glUniform1i(glGetUniformLocation(shader->ID, "screenTexture"), 0);
-    glUniform1i(glGetUniformLocation(shader->ID, "depthTexture"), 1);
-    glUniform1i(glGetUniformLocation(shader->ID, "normalTexture"), 2);
+    Camera* camera = renderWindow->render_camera;
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)renderWindow->Width() / (float)renderWindow->Height(), 0.1f, 100.0f);
+    ssao_shader->setMat4("projection", projection);
+    
+    for (unsigned int i = 0; i < 64; ++i)
+    {
+        ssao_shader->setVec3("samples[" + std::to_string(i) + "]", ssaoKernel[i]);
+    }
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, depthTexture->color_buffer);
+    glBindTexture(GL_TEXTURE_2D, fragPosTexture->color_buffer);
     glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, depthTexture->color_buffer);
+    glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, normalTexture->color_buffer);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, noiseTexture);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(quad);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    BeiginRender();
+    shader->use();
+    glUniform1i(glGetUniformLocation(shader->ID, "screenTexture"), 0);
+    glUniform1i(glGetUniformLocation(shader->ID, "ssaoTexture"), 1);
+    glBindVertexArray(quad);
+    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, ssaoTexture->color_buffer);
+
+    
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 

@@ -15,11 +15,6 @@
 
 #include <gizmos.h>
 
-RenderTexture* RenderPipeline::normal_texture;
-RenderTexture* RenderPipeline::fragpos_texture;
-DepthTexture* RenderPipeline::depth_texture;
-DepthTexture* RenderPipeline::shadow_map;
-
 void RenderPipeline::EnqueueRenderQueue(SceneModel *model)     { ModelQueueForRender.insert({model->id, model});   }
 void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRender.erase(id);                    }
 
@@ -72,8 +67,6 @@ SceneModel *RenderPipeline::GetRenderModel(unsigned int id)
 
 void RenderPipeline::OnWindowSizeChanged(int width, int height)
 {
-    postprocess_manager->ResizeRenderArea(width, height);
-
     // Resize depth texture as well
     delete depth_texture;
     delete normal_texture;
@@ -81,6 +74,8 @@ void RenderPipeline::OnWindowSizeChanged(int width, int height)
     depth_texture = new DepthTexture(width, height);
     normal_texture = new RenderTexture(width, height);
     fragpos_texture = new RenderTexture(width, height);
+
+    postprocess_manager->ResizeRenderArea(width, height);
 }
 
 /*********************

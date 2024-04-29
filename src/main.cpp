@@ -85,7 +85,7 @@ int main()
                                             true);
 
     Shader *ssao_shader     = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
-                                            FileSystem::GetContentPath() / "Shader/SSAO.fs",
+                                            FileSystem::GetContentPath() / "Shader/SSAO_blur.fs",
                                             true);
 
     // Shader *raymarching_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
@@ -105,7 +105,7 @@ int main()
     // raymarching_shader->LoadShader();
 
     // Create a post process manager
-    PostProcessManager* ppm = new PostProcessManager(main_window.Width(), main_window.Height());
+    PostProcessManager* ppm = new PostProcessManager(&scene->render_pipeline, main_window.Width(), main_window.Height());
     scene->RegisterSceneObject(ppm);
     // Assign postprocess manager to scene's renderer pipeline
     scene->render_pipeline.postprocess_manager = ppm;
@@ -116,8 +116,10 @@ int main()
     // ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( raymarching_shader, "RayMarching", false ));
 
     auto ssao_process = ppm->CreatePostProcess<SSAOProcess>( ssao_shader, "SSAO" , false);
-    ssao_process->depthTexture = RenderPipeline::depth_texture;
-    ssao_process->normalTexture = RenderPipeline::normal_texture;
+    ssao_process->depthTexture = scene->render_pipeline.depth_texture;
+    ssao_process->normalTexture = scene->render_pipeline.normal_texture;
+    ssao_process->fragPosTexture = scene->render_pipeline.fragpos_texture;
+    ssao_process->renderWindow = &main_window;
     ppm->AddPostProcess( ssao_process );
 
     ppm->AddPostProcess( ppm->CreatePostProcess<BloomProcess>( bloom_shader, "Bloom", false ));

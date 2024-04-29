@@ -13,10 +13,12 @@ class Scene
 public:
     std::vector<SceneObject *>  scene_object_list;
     RenderPipeline              render_pipeline;
-
+    static std::map<unsigned int, Scene*> LoadedScene;
+    static unsigned int next_scene_id;
 public:
     Scene(RendererWindow *window);
     ~Scene();
+    unsigned int scene_id;
     void RegisterSceneObject        ( SceneObject *object                    );
     void RegisterGlobalLight        ( SceneLight *light                      );
     void InstanceFromModel          ( Model *model, std::string name         );

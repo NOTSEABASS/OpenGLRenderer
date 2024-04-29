@@ -23,6 +23,7 @@ public:
     SceneModel* GetRenderModel  ( unsigned int id                       );
     void Render                 ();
     void OnWindowSizeChanged    (int width, int height                  ) override;
+    Camera* GetDefaultCamera    () { return window->render_camera; };
 
     struct ShadowMapSetting
     {
@@ -33,10 +34,10 @@ public:
     float *clear_color;
     SceneLight* global_light;
     PostProcessManager *postprocess_manager = nullptr;
-    static RenderTexture* normal_texture;
-    static RenderTexture* fragpos_texture;
-    static DepthTexture* depth_texture;
-    static DepthTexture* shadow_map;
+    RenderTexture* normal_texture;
+    RenderTexture* fragpos_texture;
+    DepthTexture* depth_texture;
+    DepthTexture* shadow_map;
 
 private:
     std::map<unsigned int, SceneModel *> ModelQueueForRender;

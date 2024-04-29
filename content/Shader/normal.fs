@@ -50,5 +50,5 @@ void main()
     vec4 normalVS = viewInverse * vec4(normalWS,1);
     normalVS.x = normalVS.x / 2.0 + 0.5;
     normalVS.y = normalVS.y / 2.0 + 0.5;
-    FragColor = vec4(normalVS.xyz, 1.0);
+    FragColor = vec4(normalWS.xyz, 1.0);
 }
