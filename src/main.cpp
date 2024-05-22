@@ -88,9 +88,9 @@ int main()
                                             FileSystem::GetContentPath() / "Shader/SSAO_blur.fs",
                                             true);
 
-    // Shader *raymarching_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
-    //                                             FileSystem::GetContentPath() / "Shader/rayMarching.fs",
-    //                                             true);
+    Shader *raymarching_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+                                                FileSystem::GetContentPath() / "Shader/rayMarching.fs",
+                                                true);
 
     default_shader->LoadShader();
     color_shader->LoadShader();
@@ -102,7 +102,7 @@ int main()
     blur_shader->LoadShader();
     bloom_shader->LoadShader();
     ssao_shader->LoadShader();
-    // raymarching_shader->LoadShader();
+    raymarching_shader->LoadShader();
 
     // Create a post process manager
     PostProcessManager* ppm = new PostProcessManager(&scene->render_pipeline, main_window.Width(), main_window.Height());
@@ -113,7 +113,6 @@ int main()
     // Post process for test
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( inverse_shader, "inverse", false));
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( blur_shader, "Blur", false ));
-    // ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( raymarching_shader, "RayMarching", false ));
 
     auto ssao_process = ppm->CreatePostProcess<SSAOProcess>( ssao_shader, "SSAO" , false);
     ssao_process->depthTexture = scene->render_pipeline.depth_texture;
@@ -126,6 +125,10 @@ int main()
 
     // Add a gamma correct post process
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( gamma_correcting_shader, "Gamma correction" ));
+
+    auto raymarching_process = ppm->CreatePostProcess<RayMarchingProcess>( raymarching_shader, "RayMarching", false );
+    raymarching_process->raycamera = &camera;
+    ppm->AddPostProcess(raymarching_process);
 
     // Render loop
     // -----------

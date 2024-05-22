@@ -420,3 +420,34 @@ void SSAOProcess::Execute(unsigned int quad)
 
     EndRender();
 }
+
+RayMarchingProcess::RayMarchingProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled)
+    :PostProcess(_rrt, _wrt, _shader, _name, _enabled)
+{
+    raycamera = nullptr;
+    transform = new Transform();
+}
+
+RayMarchingProcess::~RayMarchingProcess() {}
+
+void RayMarchingProcess::Execute(unsigned int quad)
+{
+    BeiginRender();
+
+    shader->use();
+    glm::mat4 model = transform->GetTransformMatrix();
+    glm::mat4 view = raycamera->GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(raycamera->Zoom), (float)read_rt->width / (float)read_rt->height, 0.1f, 10000.0f);
+    shader->setMat4("model", model);
+    shader->setMat4("view", view);
+    shader->setMat4("projection", projection);
+    shader->setFloat("fov", raycamera->Zoom);
+    shader->setVec3("eyepos", raycamera->Position);
+    glBindVertexArray(quad);
+    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+    glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);	// use the color attachment texture as the texture of the quad plane
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    EndRender();
+}

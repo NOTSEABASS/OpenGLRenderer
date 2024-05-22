@@ -10,7 +10,7 @@ Model::Model(std::filesystem::path path, bool gamma) : gammaCorrection(gamma)   
 
 Model::~Model()
 {
-    RendererConsole::GetInstance()->AddLog("Delete Model: %s", directory); 
+    Console->AddLog("Delete Model: %s", directory); 
     for (auto it : refSceneModels.references)
     {
         it->OnModelRemoved();
@@ -27,7 +27,7 @@ void Model::loadModel(string const& path)
     // check for errors
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
     {
-        RendererConsole::GetInstance()->AddError("[error] ASSIMP: %s", importer.GetErrorString()); 
+        Console->AddError("[error] ASSIMP: %s", importer.GetErrorString()); 
         return;
     }
     // retrieve the directory path of the filepath
@@ -37,7 +37,7 @@ void Model::loadModel(string const& path)
     name = path_s.substr(path_s.find_last_of('/') + 1, path_s.size());
     // process ASSIMP's root node recursively
     processNode(scene->mRootNode, scene);
-    RendererConsole::GetInstance()->AddNote("Load Model From %s", path.c_str());
+    Console->AddNote("Load Model From %s", path.c_str());
     LoadedModel.insert(map<string, Model*>::value_type(name, this));
 }
 

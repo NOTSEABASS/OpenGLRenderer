@@ -4,6 +4,11 @@ out vec4 FragColor;
 in vec2 TexCoords;
 
 uniform sampler2D screenTexture;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+uniform float fov;
+uniform vec3 eyepos;
 
 const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
@@ -13,8 +18,8 @@ const float EPSILON = 0.0001;
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
  */
-float sphereSDF(vec3 samplePoint) {
-    return length(samplePoint - vec3(0,0,-10)) - 1.0;
+float sphereSDF(vec3 samplePoint, vec3 origin, float radians) {
+    return length(samplePoint - origin) - radians;
 }
 
 /**
@@ -25,7 +30,9 @@ float sphereSDF(vec3 samplePoint) {
  * negative indicating inside.
  */
 float sceneSDF(vec3 samplePoint) {
-    return sphereSDF(samplePoint);
+    vec3 pos = vec3(0,0,0);
+    vec4 glpos = view * model * vec4(pos, 1);
+    return sphereSDF(samplePoint, glpos.xyz, 1);
 }
 
 /**
@@ -137,15 +144,17 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 e
     vec3 light1Pos = vec3(4.0 * sin(1),
                           2.0,
                           4.0 * cos(1));
+    light1Pos = (view * vec4(light1Pos,1)).xyz;
     vec3 light1Intensity = vec3(0.4, 0.4, 0.4);
     
     color += phongContribForLight(k_d, k_s, alpha, p, eye,
                                   light1Pos,
                                   light1Intensity);
     
-    vec3 light2Pos = vec3(2.0 * sin(0.37 * 1),
+    vec3 light2Pos = vec3(2.0 * sin(0.37 * -1),
                           2.0 * cos(0.37 * 1),
                           2.0);
+    light2Pos = (view * vec4(light2Pos,1)).xyz;
     vec3 light2Intensity = vec3(0.4, 0.4, 0.4);
     
     color += phongContribForLight(k_d, k_s, alpha, p, eye,
@@ -158,8 +167,9 @@ void main()
 {
     vec4 col = texture(screenTexture, TexCoords).rgba;
     float ratio = 1920.0/1080.0;
-    vec3 dir = rayDirection(45.0, vec2(1,1), vec2(ratio * (TexCoords.x - 0.5) + 0.5, TexCoords.y));
-    vec3 eye = vec3(0.0, 0.0, 5.0);
+    vec3 dir = rayDirection(fov, vec2(1,1), vec2(ratio * (TexCoords.x - 0.5) + 0.5, TexCoords.y));
+    vec3 eye = vec3(0.0, 0.0, length(eyepos));
+    // vec3 fix_eyepos = vec3(eyepos.x, eyepos.y, eyepos.z);
     float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST);
     
     if (dist > MAX_DIST - EPSILON) {
