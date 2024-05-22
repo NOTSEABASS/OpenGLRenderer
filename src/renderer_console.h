@@ -5,6 +5,8 @@
 #include <iostream>
 #include <singleton_util.h>
 
+#define Console RendererConsole::GetInstance()
+
 struct LogItem
 {
     const char* content;

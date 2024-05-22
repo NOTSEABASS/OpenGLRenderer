@@ -26,8 +26,8 @@ public:
     RenderTexture   *read_rt;
     RenderTexture   *write_rt;
     Shader          *shader;
-    bool            enabled = true;
     std::string     name;
+    bool            enabled = true;
     ATR_PostProcessNode* atr_ppn;
 
     PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled = true);
@@ -87,6 +87,20 @@ public:
     RendererWindow* renderWindow;
 };
 
+class RayMarchingProcess : public PostProcess
+{
+public:
+    RayMarchingProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled = true);
+    ~RayMarchingProcess();
+
+    // virtual void OnRenderAreaResized(int x, int y);
+    // virtual void BeiginRender();
+    // virtual void EndRender();
+    virtual void Execute(unsigned int quad);
+
+    Camera* raycamera;
+    Transform* transform;
+};
 /************************************************************
 * Post process manager:
 * Will process all post process in a user-defined order.

@@ -8,10 +8,10 @@
 unsigned int Material::cur_id = 0;
 
 Material::Material()                                                    { id = cur_id++;                                                    }
-Material::~Material()                                                   { RendererConsole::GetInstance()->AddLog("delete Material");        }
-ModelMaterial::~ModelMaterial()                                         { RendererConsole::GetInstance()->AddLog("delete Model Material");  }
-PBRMaterial::~PBRMaterial()                                             { RendererConsole::GetInstance()->AddLog("delete PBR Material");    }
-UnlitMaterial::~UnlitMaterial()                                         { RendererConsole::GetInstance()->AddLog("delete Unlit Material");  }
+Material::~Material()                                                   { Console->AddLog("delete Material");        }
+ModelMaterial::~ModelMaterial()                                         { Console->AddLog("delete Model Material");  }
+PBRMaterial::~PBRMaterial()                                             { Console->AddLog("delete PBR Material");    }
+UnlitMaterial::~UnlitMaterial()                                         { Console->AddLog("delete Unlit Material");  }
 bool Material::IsValid()                                                { return shader != nullptr;                                         }
 
 void Material::SetTexture(Texture2D **slot, Texture2D *new_tex)
