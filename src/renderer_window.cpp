@@ -70,7 +70,7 @@ void RendererWindow::SetWindowSize(WindowSize size)
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     cur_window_size = size;
     glViewport(0, 0, size.width, size.height);
-    glfwSetWindowSize(Window, size.width, size.height);
+    glfwSetWindowSize(Window, size.width + renderer_ui::rightside + renderer_ui::leftside, size.height + renderer_ui::bottomside);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     BroadcastWindowSizeChanged();
 }
@@ -98,8 +98,8 @@ void RendererWindow::BroadcastWindowSizeChanged()
 RendererWindow::RendererWindow(Camera *camera, std::string name) : render_camera(camera), window_name(name)
 {
     Window = init_window();
-    imgui = new renderer_ui();
-    imgui->setup(Window);
+    // imgui = new renderer_ui();
+    // imgui->setup(Window);
     window_camera_map.insert({Window, render_camera});
     w_rw_map.insert({Window, this});
     clear_color = new float[3]{0};
@@ -108,8 +108,8 @@ RendererWindow::RendererWindow(Camera *camera, std::string name) : render_camera
 RendererWindow::RendererWindow(Camera *camera, std::string name, WindowSize size) : render_camera(camera), window_name(name), cur_window_size(size)
 {
     Window = init_window();
-    imgui = new renderer_ui();
-    imgui->setup(Window);
+    // imgui = new renderer_ui();
+    // imgui->setup(Window);
     window_camera_map.insert({Window, render_camera});
     w_rw_map.insert({Window, this});
     clear_color = new float[3]{0};
@@ -132,7 +132,7 @@ GLFWwindow *RendererWindow::init_window()
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(cur_window_size.width, cur_window_size.height, window_name.c_str(), NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(cur_window_size.width + renderer_ui::leftside + renderer_ui::rightside, cur_window_size.height + renderer_ui::bottomside, window_name.c_str(), NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -142,8 +142,8 @@ GLFWwindow *RendererWindow::init_window()
     glfwMakeContextCurrent(window);
     // glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-    glfwSetMouseButtonCallback(window, mouse_click_callback);
+    // glfwSetScrollCallback(window, scroll_callback);
+    // glfwSetMouseButtonCallback(window, mouse_click_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -159,6 +159,6 @@ GLFWwindow *RendererWindow::init_window()
 void RendererWindow::terminate_window()
 {
     std::cout << "Terminate window." << std::endl;
-    imgui->shutdown();
+    // imgui->shutdown();
     glfwTerminate();
 }

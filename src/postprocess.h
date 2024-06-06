@@ -100,6 +100,7 @@ public:
 
     Camera* raycamera;
     Transform* transform;
+    DepthTexture* depthTex;
 };
 /************************************************************
 * Post process manager:
@@ -154,6 +155,7 @@ public:
     
     RenderTexture   *read_rt;
     RenderTexture   *write_rt;
+    RenderTexture   *output_rt;
 
     RenderPipeline* renderPipeline;
 };

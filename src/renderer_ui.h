@@ -20,6 +20,7 @@ public:
     void resourceUI         (RendererWindow *window, Scene *scene   );
     void sceneUI            (RendererWindow *window, Scene* scene   );
     void detailUI           (RendererWindow *window, Scene *scene   );
+    void RenderPanel        (RendererWindow *window, Scene *scene   );
     void ImportModelPanel   (RendererWindow *window                 );
     void ImportShaderPanel  (RendererWindow *window                 );
     void ImportTexturePanel (RendererWindow *window                 );
@@ -27,6 +28,10 @@ public:
     void shutdown();
     static bool isFocusOnUI();
 
+    const static float leftside;
+    const static float bottomside;
+    const static float rightside;
+    
 private:
     SceneObject *selected;
     bool showImportModelPanel       = false;
@@ -38,4 +43,5 @@ private:
     std::filesystem::path import_tex_path = FileSystem::GetContentPath();
     std::filesystem::path import_model_path = FileSystem::GetContentPath();
     std::filesystem::path import_shader_path = FileSystem::GetContentPath();
+
 };

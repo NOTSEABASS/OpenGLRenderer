@@ -32,6 +32,8 @@ Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -
 int main()
 {
     RendererWindow main_window(&camera, "Tiny-Renderer(v1.2.2)", WindowSize(window_width, window_height));
+    renderer_ui* imgui = new renderer_ui();
+    imgui->setup(main_window.Window);
     // Create scene
     Scene* scene = new Scene(&main_window);
     main_window.AttatchObserver(&scene->render_pipeline);
@@ -128,10 +130,12 @@ int main()
 
     auto raymarching_process = ppm->CreatePostProcess<RayMarchingProcess>( raymarching_shader, "RayMarching", false );
     raymarching_process->raycamera = &camera;
+    raymarching_process->depthTex = scene->render_pipeline.depth_texture;
     ppm->AddPostProcess(raymarching_process);
 
     // Render loop
     // -----------
+    ImVec2 mousePosLastFrame = ImVec2(0,0);
     while (!glfwWindowShouldClose(main_window.Window))
     {
         currentFrame = static_cast<float>(glfwGetTime());
@@ -142,12 +146,20 @@ int main()
         InputInfo::GetInstance()->Update();
         Input::processInput(main_window.Window, camera, deltaTime);
 
+        ImVec2 m = ImGui::GetMousePos();
+        float mouse_offset_x = m.x - mousePosLastFrame.x;
+        float mouse_offset_y = mousePosLastFrame.y - m.y;
+        mousePosLastFrame = m;
+
+        const ImGuiIO& io = ImGui::GetIO();
         focused = InputInfo::GetInstance()->mouse_button_right;
+        focused |= io.WantCaptureMouse && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_MouseRight));
         if (focused)
         {
-            camera.ProcessMouseMovement(InputInfo::GetInstance()->mouse_offset_x,
-                                        InputInfo::GetInstance()->mouse_offset_y);
+            camera.ProcessMouseMovement(/*InputInfo::GetInstance()->*/mouse_offset_x,
+                                        /*InputInfo::GetInstance()->*/mouse_offset_y);
         }
+        // camera.ProcessMouseScroll(0, io.MouseWheel);
         // Render
         // ------
         scene->render_pipeline.clear_color = main_window.clear_color;
@@ -163,8 +175,8 @@ int main()
         ImGui::NewFrame();
 
         // Render UI
-        main_window.imgui->RenderAll(&main_window, scene);
-        ImGui::Render();
+        // main_window.imgui->RenderAll(&main_window, scene);
+        imgui->RenderAll(&main_window, scene);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(main_window.Window);
@@ -173,6 +185,7 @@ int main()
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     main_window.terminate_window();
-
+    imgui->shutdown();
+    delete imgui;
     return 0;
 }

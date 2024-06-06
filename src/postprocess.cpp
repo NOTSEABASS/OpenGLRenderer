@@ -14,6 +14,8 @@ PostProcessManager::PostProcessManager(RenderPipeline* _pipeLine, int screen_wid
 
     read_rt = new RenderTexture(screen_width, screen_height);
     write_rt = new RenderTexture(screen_width, screen_height);
+    output_rt = new RenderTexture(screen_width, screen_height);
+
     default_framebuffer_shader  = new Shader (  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                                 FileSystem::GetContentPath() / "Shader/framebuffer.fs",
                                                 true);
@@ -49,9 +51,11 @@ void PostProcessManager::ResizeRenderArea(int x, int y)
 {
     delete read_rt;
     delete write_rt;
+    delete output_rt;
 
     read_rt = new RenderTexture(x, y);
     write_rt = new RenderTexture(x, y);
+    output_rt = new RenderTexture(x, y);
 
     for (auto postprocess : postprocess_list)
     {
@@ -117,7 +121,7 @@ void PostProcessManager::ExecutePostProcessList()
     
     // Draw to default buffer
     // FrameBufferTexture::ClearBufferBinding();
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    output_rt->BindFrameBuffer();
     // clear all relevant buffers
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
     glClear(GL_COLOR_BUFFER_BIT);
@@ -152,6 +156,10 @@ void PostProcessManager::ExecutePostProcessList()
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 
+    // Clear default frameBuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 PostProcess::PostProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled) : read_rt(_rrt), write_rt(_wrt), shader(_shader) , name(_name), enabled(_enabled)
@@ -403,20 +411,19 @@ void SSAOProcess::Execute(unsigned int quad)
     glBindVertexArray(0);
 
     BeiginRender();
-    shader->use();
-    glUniform1i(glGetUniformLocation(shader->ID, "screenTexture"), 0);
-    glUniform1i(glGetUniformLocation(shader->ID, "ssaoTexture"), 1);
-    glBindVertexArray(quad);
-    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, ssaoTexture->color_buffer);
+        shader->use();
+        glUniform1i(glGetUniformLocation(shader->ID, "screenTexture"), 0);
+        glUniform1i(glGetUniformLocation(shader->ID, "ssaoTexture"), 1);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, ssaoTexture->color_buffer);
+        glActiveTexture(GL_TEXTURE0);
 
-    
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+        glBindVertexArray(quad);
+        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
 
     EndRender();
 }
@@ -426,6 +433,7 @@ RayMarchingProcess::RayMarchingProcess(RenderTexture *_rrt, RenderTexture *_wrt,
 {
     raycamera = nullptr;
     transform = new Transform();
+    glUniform1i(glGetUniformLocation(shader->ID, "screenTexture"), 0);
 }
 
 RayMarchingProcess::~RayMarchingProcess() {}
@@ -434,20 +442,23 @@ void RayMarchingProcess::Execute(unsigned int quad)
 {
     BeiginRender();
 
-    shader->use();
-    glm::mat4 model = transform->GetTransformMatrix();
-    glm::mat4 view = raycamera->GetViewMatrix();
-    glm::mat4 projection = glm::perspective(glm::radians(raycamera->Zoom), (float)read_rt->width / (float)read_rt->height, 0.1f, 10000.0f);
-    shader->setMat4("model", model);
-    shader->setMat4("view", view);
-    shader->setMat4("projection", projection);
-    shader->setFloat("fov", raycamera->Zoom);
-    shader->setVec3("eyepos", raycamera->Position);
-    glBindVertexArray(quad);
-    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-    glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);	// use the color attachment texture as the texture of the quad plane
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+        shader->use();
+        glm::mat4 model = transform->GetTransformMatrix();
+        glm::mat4 view = raycamera->GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(raycamera->Zoom), (float)read_rt->width / (float)read_rt->height, 0.1f, 10000.0f);
+        shader->setMat4("model", model);
+        shader->setMat4("view", view);
+        shader->setMat4("projection", projection);
+        shader->setFloat("fov", raycamera->Zoom);
+        shader->setVec3("eyepos", raycamera->Position);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
+
+        glBindVertexArray(quad);
+        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
 
     EndRender();
 }

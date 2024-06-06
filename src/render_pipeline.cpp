@@ -20,10 +20,14 @@ void RenderPipeline::RemoveFromRenderQueue(unsigned int id)    { ModelQueueForRe
 
 RenderPipeline::RenderPipeline(RendererWindow* _window) : window(_window) 
 {
-    normal_texture  = new RenderTexture(window->Width(), window->Height());
-    fragpos_texture = new RenderTexture(window->Width(), window->Height());
-    depth_texture   = new DepthTexture(window->Width(), window->Height());
-    shadow_map      = new DepthTexture(shadow_map_setting.shadow_map_size, shadow_map_setting.shadow_map_size);
+    normal_texture          = new RenderTexture(window->Width(), window->Height());
+    fragpos_texture         = new RenderTexture(window->Width(), window->Height());
+    depth_texture           = new DepthTexture(window->Width(), window->Height());
+    shadow_map              = new DepthTexture(shadow_map_setting.shadow_map_size, shadow_map_setting.shadow_map_size);
+    normal_texture->name    = "Normal Buffer";
+    fragpos_texture->name   = "Fragpos Buffer";
+    depth_texture->name     = "Depth Buffer";
+    shadow_map->name        = "Shadow Map";
     depth_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/depth.vs",
                                     FileSystem::GetContentPath() / "Shader/depth.fs",
                                     true);

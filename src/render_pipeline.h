@@ -33,8 +33,8 @@ public:
 
     float *clear_color;
     SceneLight* global_light;
-    PostProcessManager *postprocess_manager = nullptr;
     RenderTexture* normal_texture;
+    PostProcessManager *postprocess_manager = nullptr;
     RenderTexture* fragpos_texture;
     DepthTexture* depth_texture;
     DepthTexture* shadow_map;

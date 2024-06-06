@@ -29,7 +29,7 @@ public:
     void AttatchObserver(IOnWindowSizeChanged* lis);
     void DetatchObserver(IOnWindowSizeChanged* lis);
     Camera          *render_camera;
-    renderer_ui     *imgui;
+    // renderer_ui     *imgui;
     std::string     window_name;
     WindowSize      cur_window_size = EditorSettings::window_size_list[0];
 private:

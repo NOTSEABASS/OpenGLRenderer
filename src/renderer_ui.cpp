@@ -6,8 +6,15 @@
 #include <scene_object.h>
 #include <vector>
 #include <editor_settings.h>
+#include <postprocess.h>
+#include <render_texture.h>
 
 const char *glsl_version = "#version 150";
+
+const float renderer_ui::leftside = 250;
+const float renderer_ui::rightside = 300;
+const float renderer_ui::bottomside = 250;
+
 renderer_ui::renderer_ui()
 {
     IMGUI_CHECKVERSION();
@@ -37,9 +44,31 @@ void renderer_ui::RenderAll(RendererWindow *window, Scene *scene)
     resourceUI(window, scene);
     sceneUI(window, scene);
     detailUI(window, scene);
+    RenderPanel(window, scene);
+    ImGui::Render();
 }
 
 bool renderer_ui::isFocusOnUI() { return ImGui::GetIO().WantCaptureMouse; }
+
+void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene)
+{
+    int width = window->Width();
+    int height = window->Height();
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(leftside, 0), ImGuiCond_Always);
+
+    ImGui::Begin("Render Panel");
+        ImGui::BeginChild("TexturePreview", ImVec2(width, height-40), ImGuiChildFlags_Border);
+        float render_width = width;
+        float render_height = height;
+        ImVec2 uv_min = ImVec2(0.0f, 1.0f);                        // Top-left
+        ImVec2 uv_max = ImVec2(1.0f, 0.0f);                        // Lower-right
+        ImVec4 tint_col = ImGui::GetStyleColorVec4(ImGuiCol_Text); // No tint
+        ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImVec2(render_width, render_height-60), uv_min, uv_max, tint_col, border_col);
+        ImGui::EndChild();
+    ImGui::End();
+}
 
 /*********************
 * File Browser
@@ -318,8 +347,8 @@ void renderer_ui::ImportTexturePanel(RendererWindow *window)
 **********************/
 void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
 {
-    int width = window->Width() / 8 > 200 ? window->Width() / 8 : 200;
-    int height = window->Height() / 12 > 80 ? window->Width() / 12 : 80;
+    int width = leftside;
+    int height = window->Height() / 4;
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     ImGuiWindowFlags window_flags = 0;
@@ -430,11 +459,9 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
 **********************/
 void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 {
-    const int min_width = 200;
-    int width = window->Width() / 8 > min_width ? window->Width() / 8 : min_width;
-    int main_height = window->Height() / 12 > 80 ? window->Width() / 12 : 80;
-    int height = window->Height() - main_height - window->Height() / 4;
-    ImGui::SetNextWindowPos(ImVec2(0, main_height), ImGuiCond_Always);
+    int width = leftside;
+    int height = window->Height() / 4 * 3;
+    ImGui::SetNextWindowPos(ImVec2(0, window->Height() / 4), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     {
         ImGui::Begin("Scene");
@@ -499,10 +526,9 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 **********************/
 void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
 {
-    const int min_width = 300;
-    int width = window->Width() / 8 > min_width ? window->Width() / 8 : min_width;
-    ImGui::SetNextWindowPos(ImVec2(window->Width() - width, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(width, window->Height() / 12 * 9), ImGuiCond_Always);
+    int width = rightside;
+    ImGui::SetNextWindowPos(ImVec2(window->Width() + leftside, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, window->Height()), ImGuiCond_Always);
     {
         ImGui::Begin("Detail");
         if (selected != nullptr)
@@ -519,8 +545,8 @@ void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
 **********************/
 void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
 {
-    ImGui::SetNextWindowPos(ImVec2(0, window->Height() / 4 * 3), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(window->Width(), window->Height() / 4), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(0, window->Height()), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(window->Width() + leftside + rightside, bottomside), ImGuiCond_Always);
     // collect loaded resources' names
     std::vector<std::string> model_names;
     std::vector<std::string> tex_names;
@@ -543,7 +569,7 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
         shader_names.push_back(it->first);
     }
 
-    ImGui::SetNextWindowSize(ImVec2(window->Width(), 400), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(window->Width() + leftside + rightside, 400), ImGuiCond_Always);
     {
         ImGui::Begin("Resource");
         float preview_width = window->Width() / 2;
