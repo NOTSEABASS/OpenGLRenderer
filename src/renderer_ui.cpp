@@ -58,6 +58,7 @@ void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene)
     ImGui::SetNextWindowPos(ImVec2(leftside, 0), ImGuiCond_Always);
 
     ImGui::Begin("Render Panel");
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("TexturePreview", ImVec2(width, height-40), ImGuiChildFlags_Border);
         float render_width = width;
         float render_height = height;
@@ -65,8 +66,9 @@ void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene)
         ImVec2 uv_max = ImVec2(1.0f, 0.0f);                        // Lower-right
         ImVec4 tint_col = ImGui::GetStyleColorVec4(ImGuiCol_Text); // No tint
         ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImVec2(render_width, render_height-60), uv_min, uv_max, tint_col, border_col);
+        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImVec2(render_width - 30, render_height-60), uv_min, uv_max, tint_col, border_col);
         ImGui::EndChild();
+        ImGui::PopStyleVar();
     ImGui::End();
 }
 
@@ -569,11 +571,11 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
         shader_names.push_back(it->first);
     }
 
-    ImGui::SetNextWindowSize(ImVec2(window->Width() + leftside + rightside, 400), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(window->Width() + leftside + rightside, bottomside), ImGuiCond_Always);
     {
         ImGui::Begin("Resource");
-        float preview_width = window->Width() / 2;
-        float preview_height = window->Width() / 8;
+        float preview_width = (window->Width() + leftside + rightside) / 2;
+        float preview_height = bottomside - 40;
         ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
         if (ImGui::BeginTabBar("Resource Bar", tab_bar_flags))
         {

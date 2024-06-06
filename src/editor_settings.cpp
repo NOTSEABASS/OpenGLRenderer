@@ -3,7 +3,8 @@
 bool EditorSettings::UsePostProcess = true;
 bool EditorSettings::UsePolygonMode = false;
 bool EditorSettings::DrawGizmos     = true;
-std::vector<WindowSize> EditorSettings::window_size_list = {    WindowSize(800, 600),
+std::vector<WindowSize> EditorSettings::window_size_list = {    WindowSize(400, 300),
+                                                                WindowSize(800, 600),
                                                                 WindowSize(1024, 768),
                                                                 WindowSize(1200, 900),
                                                                 WindowSize(1280, 720),
