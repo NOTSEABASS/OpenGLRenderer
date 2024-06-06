@@ -57,7 +57,9 @@ void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene)
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(leftside, 0), ImGuiCond_Always);
 
-    ImGui::Begin("Render Panel");
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus; 
+    static bool renderpanel_open = true;
+    ImGui::Begin("Render Panel", &renderpanel_open, flags);
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("TexturePreview", ImVec2(width, height-40), ImGuiChildFlags_Border);
         float render_width = width;
@@ -82,8 +84,8 @@ void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_pa
     {
         return;
     }
-    int width = window->Width() / 3;
-    int height = window->Height() / 5;
+    int width = 400;
+    int height = 300;
     ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
 
@@ -200,8 +202,8 @@ void renderer_ui::ImportModelPanel(RendererWindow *window)
     {
         return;
     }
-    int width = window->Width() / 3;
-    int height = window->Height() / 8;
+    int width = 400;
+    int height = 300;
     ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     {
@@ -251,8 +253,8 @@ void renderer_ui::ImportShaderPanel(RendererWindow *window)
     {
         return;
     }
-        int width = window->Width() / 3;
-    int height = window->Height() / 8;
+    int width = 400;
+    int height = 300;
     ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
@@ -355,7 +357,7 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     ImGuiWindowFlags window_flags = 0;
     static bool p_open = true;
-    window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse;
+    window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus;
     {
         ImGui::Begin("Main", &p_open, window_flags);
 
@@ -463,10 +465,12 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 {
     int width = leftside;
     int height = window->Height() / 4 * 3;
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus;
+    static bool scene_open = true;
     ImGui::SetNextWindowPos(ImVec2(0, window->Height() / 4), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     {
-        ImGui::Begin("Scene");
+        ImGui::Begin("Scene", &scene_open, flags);
         static int selected_obj = -1;
         std::vector<int> GC_Cache;
         if (selected_obj >= 0)
@@ -532,7 +536,9 @@ void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
     ImGui::SetNextWindowPos(ImVec2(window->Width() + leftside, 0), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, window->Height()), ImGuiCond_Always);
     {
-        ImGui::Begin("Detail");
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus;
+        static bool detail_open = true;
+        ImGui::Begin("Detail", &detail_open, flags);
         if (selected != nullptr)
         {
             selected->RenderAttribute();
@@ -581,7 +587,7 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
         {
             if (ImGui::BeginTabItem("Loaded Models"))
             {
-                ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
+                ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBringToFrontOnFocus;
                 ImGui::BeginChild("ModelList", ImVec2(ImGui::GetContentRegionAvail().x - preview_width, preview_height - 20), ImGuiChildFlags_None, window_flags);
                 static int selected_model = -1;
                 for (int n = 0; n < model_names.size(); n++)

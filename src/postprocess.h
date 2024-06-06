@@ -85,6 +85,8 @@ public:
     DepthTexture* depthTexture;
 
     RendererWindow* renderWindow;
+
+    float radius = 1;
 };
 
 class RayMarchingProcess : public PostProcess

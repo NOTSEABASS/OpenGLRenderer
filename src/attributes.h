@@ -180,6 +180,14 @@ public:
     virtual ~ATR_BloomProcessNode()      override;
 };
 
+class ATR_SSAOProcessNode : public ATR_PostProcessNode
+{
+public:
+    ATR_SSAOProcessNode(PostProcess* _postprocess);
+    virtual void UI_Implement()         override;
+    virtual ~ATR_SSAOProcessNode()      override;
+};
+
 class PostProcessManager;
 class ATR_PostProcessManager : public Attribute
 {

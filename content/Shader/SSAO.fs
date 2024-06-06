@@ -9,10 +9,12 @@ uniform sampler2D depthTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D texNoise;
 
+uniform float radius;
+uniform vec2 screenSize;
 uniform vec3 samples[64];
 uniform mat4 projection;
 
-const vec2 noiseScale = vec2(1920.0/4.0, 1080.0/4.0);
+vec2 noiseScale = vec2(screenSize.x/4.0, screenSize.y/4.0);
 
 const float NEAR = 0.1; // 投影矩阵的近平面
 const float FAR = 10000.0f; // 投影矩阵的远平面
@@ -38,7 +40,6 @@ void main()
 
     float occlusion = 0.0;
     int kernelSize = 64;
-    float radius = 1;
     for(int i = 0; i < kernelSize; ++i)
     {
         // 获取样本位置

@@ -340,3 +340,11 @@ void ATR_BloomProcessNode::UI_Implement()
     ImGui::DragFloat("threshold", &dynamic_cast<BloomProcess*>(postprocess)->threshold, 0.05f);
     ImGui::DragFloat("exposure", &dynamic_cast<BloomProcess*>(postprocess)->exposure, 0.05f);
 }
+
+ATR_SSAOProcessNode::ATR_SSAOProcessNode(PostProcess* _bloomprocess) : ATR_PostProcessNode(_bloomprocess) {}
+ATR_SSAOProcessNode::~ATR_SSAOProcessNode() {}
+void ATR_SSAOProcessNode::UI_Implement()
+{
+    ATR_PostProcessNode::UI_Implement();
+    ImGui::DragFloat("radius", &dynamic_cast<SSAOProcess*>(postprocess)->radius, 0.05f);
+}

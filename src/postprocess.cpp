@@ -210,6 +210,9 @@ void PostProcess::Execute(unsigned int quad)
 
 BloomProcess::BloomProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled) : PostProcess(_rrt, _wrt, _shader, _name, _enabled)
 {
+    // Delete the attribute created by PostProcess constructor
+    delete atr_ppn;
+
     atr_ppn = new ATR_BloomProcessNode(this);
     bloom_buffer = new BloomRenderBuffer(_rrt->width, _rrt->height);
     pingpong_buffer[0] = new RenderTexture(_rrt->width, _rrt->height);
@@ -319,6 +322,11 @@ GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
 
 SSAOProcess::SSAOProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shader, std::string _name, bool _enabled) : PostProcess(_rrt, _wrt, _shader, _name, _enabled)
 {
+    // Delete the attribute created by PostProcess constructor
+    delete atr_ppn;
+    // Create custom attribute
+    atr_ppn = new ATR_SSAOProcessNode(this);
+    
     ssao_shader = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                 FileSystem::GetContentPath() / "Shader/SSAO.fs",
                                 true);
@@ -392,7 +400,9 @@ void SSAOProcess::Execute(unsigned int quad)
     {
         ssao_shader->setVec3("samples[" + std::to_string(i) + "]", ssaoKernel[i]);
     }
-
+    ssao_shader->setFloat("radius", radius);
+    ssao_shader->setVec2("screenSize", glm::vec2(read_rt->width, read_rt->height));
+    Console->AddLog("w: %d, h:%d", read_rt->width, read_rt->height);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
     glActiveTexture(GL_TEXTURE1);
