@@ -57,18 +57,14 @@ void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene)
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(leftside, 0), ImGuiCond_Always);
 
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar; 
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse; 
     static bool renderpanel_open = true;
     ImGui::Begin("Render Panel", &renderpanel_open, flags);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-        float render_width = width;
-        float render_height = height;
         ImVec2 uv_min = ImVec2(0.0f, 1.0f);                        // Top-left
         ImVec2 uv_max = ImVec2(1.0f, 0.0f);                        // Lower-right
-        ImVec4 tint_col = ImGui::GetStyleColorVec4(ImGuiCol_Text); // No tint
-        ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImGui::GetContentRegionAvail(), uv_min, uv_max, tint_col, border_col);
+        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImGui::GetContentRegionAvail(), uv_min, uv_max);
         ImGui::PopStyleVar(2);
     ImGui::End();
 }
@@ -117,6 +113,10 @@ void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_pa
         ImGui::EndCombo();
     }
     std::vector<fs::directory_entry> files;
+    if (!fs::is_directory(*_path))
+    {
+        *_path = _path->parent_path();
+    }
     for ( auto const& dir_entry : fs::directory_iterator{*_path})
     {
         files.push_back(dir_entry);
@@ -202,8 +202,8 @@ void renderer_ui::ImportModelPanel(RendererWindow *window)
         return;
     }
     int width = 400;
-    int height = 300;
-    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
+    int height = 200;
+    ImGui::SetNextWindowPos(ImVec2(window->Width()/ 2, window->Height() / 2), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     {
         ImGui::Begin("Import Model");
@@ -214,7 +214,7 @@ void renderer_ui::ImportModelPanel(RendererWindow *window)
         ImGui::SameLine();
         if (ImGui::Button("..."))
         {
-            import_model_path = FileSystem::GetContentPath();
+            // import_model_path = FileSystem::GetContentPath();
             file_path = &import_model_path;
             showFileBrowser = true;
         }
@@ -253,8 +253,8 @@ void renderer_ui::ImportShaderPanel(RendererWindow *window)
         return;
     }
     int width = 400;
-    int height = 300;
-    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
+    int height = 200;
+    ImGui::SetNextWindowPos(ImVec2(window->Width() / 2, window->Height() / 2), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
     {
@@ -305,9 +305,9 @@ void renderer_ui::ImportTexturePanel(RendererWindow *window)
     {
         return;
     }
-    int width = window->Width() / 3;
-    int height = window->Height() / 8;
-    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
+    int width = 500;
+    int height = 100;
+    ImGui::SetNextWindowPos(ImVec2(window->Width() / 2, window->Height() / 2), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     ImGui::Begin("Import Texture");
     static char tex_path[128];
@@ -317,7 +317,7 @@ void renderer_ui::ImportTexturePanel(RendererWindow *window)
     ImGui::SameLine();
     if (ImGui::Button("..."))
     {
-        import_tex_path = FileSystem::GetContentPath();
+        // import_tex_path = FileSystem::GetContentPath();
         file_path = &import_tex_path;
         showFileBrowser = true;
     }
@@ -464,7 +464,7 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 {
     int width = leftside;
     int height = window->Height() / 4 * 3;
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus;
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoCollapse;
     static bool scene_open = true;
     ImGui::SetNextWindowPos(ImVec2(0, window->Height() / 4), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
@@ -535,7 +535,7 @@ void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
     ImGui::SetNextWindowPos(ImVec2(window->Width() + leftside, 0), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, window->Height()), ImGuiCond_Always);
     {
-        ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus;
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoCollapse;
         static bool detail_open = true;
         ImGui::Begin("Detail", &detail_open, flags);
         if (selected != nullptr)
@@ -586,7 +586,7 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
         {
             if (ImGui::BeginTabItem("Loaded Models"))
             {
-                ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBringToFrontOnFocus;
+                ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoCollapse;
                 ImGui::BeginChild("ModelList", ImVec2(ImGui::GetContentRegionAvail().x - preview_width, preview_height - 20), ImGuiChildFlags_None, window_flags);
                 static int selected_model = -1;
                 for (int n = 0; n < model_names.size(); n++)

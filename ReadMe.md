@@ -5,6 +5,11 @@ This is a tiny-renderer project written in c++ based on OpenGL
 <img src="/img/renderer-preview.gif" style="zoom:50%;" />
 
 ## UpdateInfo
+Update 1.2.4
+- A totally usable SSAO
+- Move render result to a imgui panel
+- fix some problems
+
 Update 1.2.3
 - Add a simple SSAO
 

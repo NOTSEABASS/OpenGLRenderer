@@ -405,7 +405,6 @@ void SSAOProcess::Execute(unsigned int quad)
     }
     ssao_shader->setFloat("radius", radius);
     ssao_shader->setVec2("screenSize", glm::vec2(read_rt->width, read_rt->height));
-    Console->AddLog("w: %d, h:%d", read_rt->width, read_rt->height);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, read_rt->color_buffer);
     glActiveTexture(GL_TEXTURE1);

@@ -31,7 +31,7 @@ Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -
 
 int main()
 {
-    RendererWindow main_window(&camera, "Tiny-Renderer(v1.2.2)", WindowSize(window_width, window_height));
+    RendererWindow main_window(&camera, "Tiny-Renderer(v1.2.4)", WindowSize(window_width, window_height));
     renderer_ui* imgui = new renderer_ui();
     imgui->setup(main_window.Window);
     // Create scene
@@ -90,9 +90,9 @@ int main()
                                             FileSystem::GetContentPath() / "Shader/SSAO_blur.fs",
                                             true);
 
-    Shader *raymarching_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
-                                                FileSystem::GetContentPath() / "Shader/rayMarching.fs",
-                                                true);
+    // Shader *raymarching_shader     = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+    //                                             FileSystem::GetContentPath() / "Shader/rayMarching.fs",
+    //                                             true);
 
     default_shader->LoadShader();
     color_shader->LoadShader();
@@ -104,7 +104,7 @@ int main()
     blur_shader->LoadShader();
     bloom_shader->LoadShader();
     ssao_shader->LoadShader();
-    raymarching_shader->LoadShader();
+    // raymarching_shader->LoadShader();
 
     // Create a post process manager
     PostProcessManager* ppm = new PostProcessManager(&scene->render_pipeline, main_window.Width(), main_window.Height());
@@ -128,10 +128,10 @@ int main()
     // Add a gamma correct post process
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( gamma_correcting_shader, "Gamma correction" ));
 
-    auto raymarching_process = ppm->CreatePostProcess<RayMarchingProcess>( raymarching_shader, "RayMarching", false );
-    raymarching_process->raycamera = &camera;
-    raymarching_process->depthTex = scene->render_pipeline.depth_texture;
-    ppm->AddPostProcess(raymarching_process);
+    // auto raymarching_process = ppm->CreatePostProcess<RayMarchingProcess>( raymarching_shader, "RayMarching", false );
+    // raymarching_process->raycamera = &camera;
+    // raymarching_process->depthTex = scene->render_pipeline.depth_texture;
+    // ppm->AddPostProcess(raymarching_process);
 
     // Render loop
     // -----------
