@@ -109,14 +109,17 @@ void PostProcessManager::MoveDownPostProcessOnIndex(int index)
 
 void PostProcessManager::ExecutePostProcessList()
 {
-    glDisable(GL_CULL_FACE);
-    for (auto postprocess : postprocess_list)
+    if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode )
     {
-        if (postprocess->enabled)
+        glDisable(GL_CULL_FACE);
+        for (auto postprocess : postprocess_list)
         {
-            postprocess->Execute(quadVAO);
+            if (postprocess->enabled)
+            {
+                postprocess->Execute(quadVAO);
+            }
+            
         }
-        
     }
     
     // Draw to default buffer
@@ -326,7 +329,7 @@ SSAOProcess::SSAOProcess(RenderTexture *_rrt, RenderTexture *_wrt, Shader *_shad
     delete atr_ppn;
     // Create custom attribute
     atr_ppn = new ATR_SSAOProcessNode(this);
-    
+
     ssao_shader = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                 FileSystem::GetContentPath() / "Shader/SSAO.fs",
                                 true);

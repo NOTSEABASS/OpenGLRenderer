@@ -398,15 +398,9 @@ void RenderPipeline::Render()
     // Normal Pass
     ProcessNormalPass();
 
-
-    // Pre Render Setting
-    if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
+    if (postprocess_manager != nullptr)
     {
         postprocess_manager->read_rt->BindFrameBuffer();
-    }
-    else
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     // Draw color pass
@@ -419,7 +413,7 @@ void RenderPipeline::Render()
     }
 
     // PostProcess
-    if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode && postprocess_manager != nullptr)
+    if (postprocess_manager != nullptr)
     {
         postprocess_manager->ExecutePostProcessList();
     }
