@@ -109,7 +109,7 @@ void PostProcessManager::MoveDownPostProcessOnIndex(int index)
 
 void PostProcessManager::ExecutePostProcessList()
 {
-    if (EditorSettings::UsePostProcess && !EditorSettings::UsePolygonMode )
+    if (EditorSettings::UsePostProcess && !EditorSettings::UseWireframeMode )
     {
         glDisable(GL_CULL_FACE);
         for (auto postprocess : postprocess_list)

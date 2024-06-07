@@ -1,7 +1,7 @@
 #include <editor_settings.h>
 
 bool EditorSettings::UsePostProcess = true;
-bool EditorSettings::UsePolygonMode = false;
+bool EditorSettings::UseWireframeMode = false;
 bool EditorSettings::DrawGizmos     = true;
 std::vector<WindowSize> EditorSettings::window_size_list = {    WindowSize(400, 300),
                                                                 WindowSize(800, 600),

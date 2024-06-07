@@ -57,20 +57,19 @@ void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene)
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(leftside, 0), ImGuiCond_Always);
 
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus; 
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar; 
     static bool renderpanel_open = true;
     ImGui::Begin("Render Panel", &renderpanel_open, flags);
-        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-        ImGui::BeginChild("TexturePreview", ImVec2(width, height-40), ImGuiChildFlags_Border);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         float render_width = width;
         float render_height = height;
         ImVec2 uv_min = ImVec2(0.0f, 1.0f);                        // Top-left
         ImVec2 uv_max = ImVec2(1.0f, 0.0f);                        // Lower-right
         ImVec4 tint_col = ImGui::GetStyleColorVec4(ImGuiCol_Text); // No tint
         ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImVec2(render_width - 30, render_height-60), uv_min, uv_max, tint_col, border_col);
-        ImGui::EndChild();
-        ImGui::PopStyleVar();
+        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImGui::GetContentRegionAvail(), uv_min, uv_max, tint_col, border_col);
+        ImGui::PopStyleVar(2);
     ImGui::End();
 }
 
@@ -406,8 +405,8 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
                 ImGui::SeparatorText("Rendering Setting");
                 {
                     ImGui::ColorEdit3("clear color", (float *)window->clear_color); // Edit 3 floats representing a color
-                    ImGui::Checkbox("Use PolygonMode", &EditorSettings::UsePolygonMode);
-                    if (!EditorSettings::UsePolygonMode)
+                    ImGui::Checkbox("Use Wireframe Mode", &EditorSettings::UseWireframeMode);
+                    if (!EditorSettings::UseWireframeMode)
                     {
                         ImGui::Checkbox("Use PostProcess", &EditorSettings::UsePostProcess);
                     }

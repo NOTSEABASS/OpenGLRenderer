@@ -176,7 +176,7 @@ public:
                 break;
             }
 
-            if (EditorSettings::UsePolygonMode)
+            if (EditorSettings::UseWireframeMode)
             {
                 // draw mesh
                 glBindVertexArray(mesh->VAO);
@@ -190,6 +190,7 @@ public:
             {
                 mesh->Draw(material);
             }
+            glDisable(GL_CULL_FACE);
         }
     }
 

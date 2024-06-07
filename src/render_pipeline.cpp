@@ -234,7 +234,7 @@ void RenderPipeline::ProcessColorPass()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    if (EditorSettings::UsePolygonMode)
+    if (EditorSettings::UseWireframeMode)
     {
         glLineWidth(0.05);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -272,7 +272,7 @@ void RenderPipeline::ProcessColorPass()
             }
             prev_mat = mat;
             Shader* shader;
-            if (EditorSettings::UsePolygonMode || !mat->shader->IsValid())
+            if (EditorSettings::UseWireframeMode || !mat->shader->IsValid())
             {
                 shader = Shader::LoadedShaders["default.fs"];
             }
