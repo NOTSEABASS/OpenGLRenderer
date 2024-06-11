@@ -8,6 +8,7 @@
 #include <editor_settings.h>
 #include <postprocess.h>
 #include <render_texture.h>
+#include <imgui/imgui_internal.h>
 
 const char *glsl_version = "#version 150";
 
@@ -65,6 +66,11 @@ void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene)
         ImVec2 uv_min = ImVec2(0.0f, 1.0f);                        // Top-left
         ImVec2 uv_max = ImVec2(1.0f, 0.0f);                        // Lower-right
         ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImGui::GetContentRegionAvail(), uv_min, uv_max);
+        ImGui::SetItemUsingMouseWheel();
+        if (ImGui::IsItemHovered())
+        {
+            scene->window->render_camera->ProcessMouseScroll(0, ImGui::GetIO().MouseWheel);
+        }
         ImGui::PopStyleVar(2);
     ImGui::End();
 }

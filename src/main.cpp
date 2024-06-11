@@ -16,9 +16,6 @@
 #include <iostream>
 #include <vector>
 
-#define window_width    1920
-#define window_height   1080
-
 const double Pi = 3.1415926;
 
 bool focused        = false;
@@ -31,7 +28,7 @@ Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -
 
 int main()
 {
-    RendererWindow main_window(&camera, "Tiny-Renderer(v1.2.4)", WindowSize(window_width, window_height));
+    RendererWindow main_window(&camera, "Tiny-Renderer(v1.2.4)", WindowSize(400, 300));
     renderer_ui* imgui = new renderer_ui();
     imgui->setup(main_window.Window);
     // Create scene
@@ -82,7 +79,7 @@ int main()
                                             FileSystem::GetContentPath() / "Shader/blur.fs",
                                             true);
 
-    Shader *bloom_shader    = new Shader(  FileSystem::GetContentPath() / "Shader/framebuffer.vs",
+    Shader *bloom_shader    = new Shader(   FileSystem::GetContentPath() / "Shader/framebuffer.vs",
                                             FileSystem::GetContentPath() / "Shader/bloom.fs",
                                             true);
 
@@ -113,7 +110,7 @@ int main()
     scene->render_pipeline.postprocess_manager = ppm;
 
     // Post process for test
-    ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( inverse_shader, "inverse", false));
+    ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( inverse_shader, "Inverse", false));
     ppm->AddPostProcess( ppm->CreatePostProcess<PostProcess>( blur_shader, "Blur", false ));
 
     auto ssao_process = ppm->CreatePostProcess<SSAOProcess>( ssao_shader, "SSAO" , false);
@@ -159,7 +156,6 @@ int main()
             camera.ProcessMouseMovement(/*InputInfo::GetInstance()->*/mouse_offset_x,
                                         /*InputInfo::GetInstance()->*/mouse_offset_y);
         }
-        // camera.ProcessMouseScroll(0, io.MouseWheel);
         // Render
         // ------
         scene->render_pipeline.clear_color = main_window.clear_color;
@@ -177,7 +173,6 @@ int main()
         // Render UI
         // main_window.imgui->RenderAll(&main_window, scene);
         imgui->RenderAll(&main_window, scene);
-
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(main_window.Window);
     }

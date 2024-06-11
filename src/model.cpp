@@ -1,16 +1,27 @@
 #include <scene_object.h>
 #include <model.h>
 #include <renderer_console.h>
+#include <threadpool.h>
 
 map<string, Model*> Model::LoadedModel;
 
 // constructor, expects a filepath to a 3D model.
-Model::Model(string const& path, bool gamma) : gammaCorrection(gamma)           { loadModel(path);                  }
-Model::Model(std::filesystem::path path, bool gamma) : gammaCorrection(gamma)   { loadModel(path.string().c_str()); }
+Model::Model(string const& path, bool gamma) : gammaCorrection(gamma)           
+{
+    mesh_path = path; 
+    // ThreadPoolManager::AddTask("Load model", &Model::loadModel, this);
+    loadModel();                  
+}
+Model::Model(std::filesystem::path path, bool gamma) : gammaCorrection(gamma)
+{ 
+    mesh_path = path.string();
+    // ThreadPoolManager::AddTask("Load model", &Model::loadModel, this); 
+    loadModel();
+}
 
 Model::~Model()
 {
-    Console->AddLog("Delete Model: %s", directory); 
+    Console->AddLog("Delete Model: %s", mesh_path); 
     for (auto it : refSceneModels.references)
     {
         it->OnModelRemoved();
@@ -19,9 +30,10 @@ Model::~Model()
 }
 
 // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-void Model::loadModel(string const& path)
+void Model::loadModel()
 {
     // read file via ASSIMP
+    auto path = mesh_path;
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     // check for errors

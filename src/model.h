@@ -29,6 +29,7 @@ public:
     vector<Texture2D*> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh*>    meshes;
     string directory;
+    string mesh_path;
     bool gammaCorrection;
     string name;
     static map<string, Model*> LoadedModel;
@@ -41,7 +42,7 @@ public:
     
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-    void loadModel(string const &path);
+    void loadModel();
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode *node, const aiScene *scene);
