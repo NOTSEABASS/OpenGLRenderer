@@ -68,7 +68,7 @@ void ATR_MaterialTexture::UI_Implement()
     std::string material_id = std::to_string(material->id);
     std::string atrtex_id = std::to_string(id);
 
-    ImGui::BeginChild(("child##" + material_id + atrtex_id).c_str(), ImVec2(200, 65), ImGuiChildFlags_Border);
+    ImGui::BeginChild(("child##" + material_id + atrtex_id).c_str(), ImVec2(200, 80), ImGuiChildFlags_Border);
     ImGui::Text(slot_name.c_str());
     ImGui::Text(("name:" + item_name).c_str());
     ImGui::Text(("type:" + tex_type).c_str());
@@ -297,7 +297,7 @@ void ATR_PostProcessManager::UI_Implement()
     for (int i = 0; i < atr_pps.size(); i++)
     {
         atr_pps[i]->UI_Implement();
-        if(ImGui::Button(("Move Up##" + std::to_string(atr_pps[i]->id)).c_str(), ImVec2(60,20)))
+        if(ImGui::Button(("Move Up##" + std::to_string(atr_pps[i]->id)).c_str(), ImVec2(80,25)))
         {
             if (i > 0)
             {
@@ -308,7 +308,7 @@ void ATR_PostProcessManager::UI_Implement()
             }
         }
         ImGui::SameLine();
-        if(ImGui::Button(("Move Down##" + std::to_string(atr_pps[i]->id)).c_str(), ImVec2(80,20)))
+        if(ImGui::Button(("Move Down##" + std::to_string(atr_pps[i]->id)).c_str(), ImVec2(90,25)))
         {
             if (i + 1 < atr_pps.size())
             {

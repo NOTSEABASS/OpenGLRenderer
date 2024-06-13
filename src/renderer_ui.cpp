@@ -34,6 +34,16 @@ void renderer_ui::setup(GLFWwindow *window)
     ImGui::StyleColorsCustom(); // Setup Dear ImGui style
     // ImGui::StyleColorsLight();
 
+    // Use chinese font
+    // 微软雅黑字体
+    ImGuiIO &io = ImGui::GetIO();
+    const char* msyh_path = "c:\\Windows\\Fonts\\msyh.ttc";
+    if (std::filesystem::exists(msyh_path))
+    {
+        io.Fonts->AddFontFromFileTTF(msyh_path, 18.0f,nullptr,
+        io.Fonts->GetGlyphRangesChineseFull());
+    }
+
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
