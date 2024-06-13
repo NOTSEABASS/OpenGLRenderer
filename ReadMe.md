@@ -48,6 +48,13 @@ cmake --build . --config Release/Debug
 
 tips: this project is based on openGL and Assimp, so you need to build them first
 
+## Problems
+### Flashback
+If you cannot run the application, please check whether your renderer can find the 'content' or 'editor' path.
+The renderer will get root path based on std::filesystem::currentpath() which may not find your content
+path correctly(For now, there won't be any installation steps for the renderer, so there may be some problem with
+the base path of the renderer.)
+
 ## Reference
 Render Engine:
 
