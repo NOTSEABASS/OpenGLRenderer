@@ -15,16 +15,17 @@ public:
     renderer_ui();
     ~renderer_ui();
     void setup              (GLFWwindow *window                     );
-    void RenderAll          (RendererWindow *window, Scene *scene   );
-    void mainUI             (RendererWindow *window, Scene* scene   );
-    void resourceUI         (RendererWindow *window, Scene *scene   );
-    void sceneUI            (RendererWindow *window, Scene* scene   );
-    void detailUI           (RendererWindow *window, Scene *scene   );
-    void RenderPanel        (RendererWindow *window, Scene *scene   );
-    void ImportModelPanel   (RendererWindow *window                 );
-    void ImportShaderPanel  (RendererWindow *window                 );
-    void ImportTexturePanel (RendererWindow *window                 );
-    void FileBrowser        (RendererWindow *window, std::filesystem::path *_path);
+    void RenderAll          (RendererWindow *window, Scene *scene, float deltaTime);
+    void mainUI             (RendererWindow *window, Scene* scene, float deltaTime   );
+    void resourceUI         (RendererWindow *window, Scene *scene, float deltaTime   );
+    void sceneUI            (RendererWindow *window, Scene* scene, float deltaTime   );
+    void detailUI           (RendererWindow *window, Scene *scene, float deltaTime   );
+    void RenderPanel        (RendererWindow *window, Scene *scene, float deltaTime   );
+    void ImportModelPanel   (RendererWindow *window, float deltaTime                 );
+    void ImportShaderPanel  (RendererWindow *window, float deltaTime                 );
+    void ImportTexturePanel (RendererWindow *window, float deltaTime                 );
+    void FileBrowser        (RendererWindow *window, std::filesystem::path *_path, float deltaTime);
+    void SetLayout          ();
     void shutdown();
     static bool isFocusOnUI();
 
@@ -39,9 +40,15 @@ private:
     bool showImportTexturePanel     = false;
     bool showFileBrowser            = false;
     bool showConsole                = false;
+    bool showRenderpanel            = true;
+    bool showDetail                 = true;
+    bool showScene                  = true;
+    bool showResource               = true;
     std::filesystem::path *file_path;
     std::filesystem::path import_tex_path = FileSystem::GetContentPath();
     std::filesystem::path import_model_path = FileSystem::GetContentPath();
     std::filesystem::path import_shader_path = FileSystem::GetContentPath();
+
+    ImGuiID mainID;
 
 };

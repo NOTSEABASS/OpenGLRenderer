@@ -140,8 +140,8 @@ int main()
         lastFrame = currentFrame;
         // input
         // -----
-        InputInfo::GetInstance()->Update();
-        Input::processInput(main_window.Window, camera, deltaTime);
+        
+        // Input::processInput(main_window.Window, camera, deltaTime);
 
         ImVec2 m = ImGui::GetMousePos();
         float mouse_offset_x = m.x - mousePosLastFrame.x;
@@ -172,7 +172,7 @@ int main()
 
         // Render UI
         // main_window.imgui->RenderAll(&main_window, scene);
-        imgui->RenderAll(&main_window, scene);
+        imgui->RenderAll(&main_window, scene, deltaTime);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(main_window.Window);
     }

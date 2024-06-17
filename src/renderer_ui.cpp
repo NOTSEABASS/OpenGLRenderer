@@ -9,6 +9,7 @@
 #include <postprocess.h>
 #include <render_texture.h>
 #include <imgui/imgui_internal.h>
+#include <input_management.h>
 
 const char *glsl_version = "#version 150";
 
@@ -24,6 +25,15 @@ renderer_ui::renderer_ui()
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+    io.ConfigViewportsNoAutoMerge = true;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }
     selected = nullptr;
 }
 
@@ -31,12 +41,12 @@ renderer_ui::~renderer_ui() { }
 
 void renderer_ui::setup(GLFWwindow *window)
 {
+    ImGuiIO &io = ImGui::GetIO();
     ImGui::StyleColorsCustom(); // Setup Dear ImGui style
     // ImGui::StyleColorsLight();
 
     // Use chinese font
     // 微软雅黑字体
-    ImGuiIO &io = ImGui::GetIO();
     const char* msyh_path = "c:\\Windows\\Fonts\\msyh.ttc";
     if (std::filesystem::exists(msyh_path))
     {
@@ -49,333 +59,121 @@ void renderer_ui::setup(GLFWwindow *window)
     ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
-void renderer_ui::RenderAll(RendererWindow *window, Scene *scene)
+void renderer_ui::RenderAll(RendererWindow *window, Scene *scene, float deltaTime)
 {
-    mainUI(window, scene);
-    resourceUI(window, scene);
-    sceneUI(window, scene);
-    detailUI(window, scene);
-    RenderPanel(window, scene);
+    mainUI(window, scene, deltaTime);
+    resourceUI(window, scene, deltaTime);
+    sceneUI(window, scene, deltaTime);
+    detailUI(window, scene, deltaTime);
+    RenderPanel(window, scene, deltaTime);
     ImGui::Render();
+
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        GLFWwindow* backup_current_context = glfwGetCurrentContext();
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+        glfwMakeContextCurrent(backup_current_context);
+    }
+
+    InputInfo::GetInstance()->Update();
+    Input::processInputGlobal(window->Window, *window->render_camera, deltaTime);
+
+    static bool first = true;
+    if (first)
+    {
+        SetLayout();
+        first = false;
+    }
+}
+
+void renderer_ui::SetLayout()
+{
+    ImGui::DockBuilderRemoveNode(mainID); // Clear out existing layout
+    ImGui::DockBuilderAddNode(mainID); // Add empty node
+    ImGui::DockBuilderSetNodeSize(mainID, ImGui::GetMainViewport()->Size);
+    
+    auto dock_id_bottom = ImGui::DockBuilderSplitNode(mainID, ImGuiDir_Down, 0.4f, nullptr, &mainID);
+    auto dock_id_right = ImGui::DockBuilderSplitNode(mainID, ImGuiDir_Right, 0.2f, nullptr, &mainID);
+    auto dock_id_left = ImGui::DockBuilderSplitNode(mainID, ImGuiDir_Left, 0.3f, nullptr, &mainID);
+    auto dock_id_count = ImGui::DockBuilderSplitNode(mainID, ImGuiDir_COUNT, 0.2f, nullptr, &mainID);
+
+    ImGui::DockBuilderDockWindow("Resource", dock_id_bottom);
+    ImGui::DockBuilderDockWindow("Render Panel", dock_id_count);
+    ImGui::DockBuilderDockWindow("Scene", dock_id_left);
+    ImGui::DockBuilderDockWindow("Detail", dock_id_right);
+    ImGui::DockBuilderFinish(mainID);
 }
 
 bool renderer_ui::isFocusOnUI() { return ImGui::GetIO().WantCaptureMouse; }
 
-void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene)
+void renderer_ui::RenderPanel(RendererWindow *window, Scene *scene, float deltaTime)
 {
+    if (!showRenderpanel)
+    {
+        return;
+    }
     int width = window->Width();
     int height = window->Height();
+    ImGuiViewport* mainViewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(leftside, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(leftside, 0), ImGuiCond_Appearing);
 
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse; 
-    static bool renderpanel_open = true;
-    ImGui::Begin("Render Panel", &renderpanel_open, flags);
+    ImGuiWindowClass window_class;
+    window_class.DockingAllowUnclassed = true;
+    window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoCloseButton;
+    // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_HiddenTabBar; // ImGuiDockNodeFlags_NoTabBar // FIXME: Will need a working Undock widget for _NoTabBar to work
+    // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoDockingSplit;
+    // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoDockingOverMe;
+    // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoDockingOverOther;
+    ImGui::SetNextWindowClass(&window_class);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize; 
+    ImGui::Begin("Render Panel", &showRenderpanel, flags);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         ImVec2 uv_min = ImVec2(0.0f, 1.0f);                        // Top-left
         ImVec2 uv_max = ImVec2(1.0f, 0.0f);                        // Lower-right
-        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImGui::GetContentRegionAvail(), uv_min, uv_max);
+
+        auto initialCursorPos = ImGui::GetCursorPos();
+        auto windowSize = ImGui::GetWindowSize();
+        auto centralizedCursorpos = ImVec2((windowSize.x - width) * 0.5f, (windowSize.y - height + 20) * 0.5f);
+        ImGui::SetCursorPos(centralizedCursorpos);
+
+        ImGui::Image((GLuint *)scene->render_pipeline.postprocess_manager->output_rt->color_buffer, ImVec2(width, height), uv_min, uv_max, ImVec4(1,1,1,1), ImVec4(1,1,1,1));
         ImGui::SetItemUsingMouseWheel();
         if (ImGui::IsItemHovered())
         {
             scene->window->render_camera->ProcessMouseScroll(0, ImGui::GetIO().MouseWheel);
         }
         ImGui::PopStyleVar(2);
-    ImGui::End();
-}
-
-/*********************
-* File Browser
-**********************/
-namespace fs = std::filesystem;
-void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_path)
-{
-    if (!showFileBrowser)
-    {
-        return;
-    }
-    int width = 400;
-    int height = 300;
-    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
-    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
-
-    ImGui::Begin("File Browser");
-    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-
-    if (ImGui::Button(".."))
-    {
-        *_path = _path->parent_path();
-    }
-    ImGui::SameLine();
-    std::vector<fs::path> roots = FileSystem::GetRootPaths();
-    int root_num = roots.size();
-    static int root_idx = 0;
-    if (ImGui::BeginCombo("root paths", _path->string().c_str()))
-    {
-        for (int n = 0; n < root_num; n++)
-        {
-            const bool is_selected = (root_idx == n);
-            if (ImGui::Selectable(roots[n].string().c_str(), is_selected))
-            {
-                root_idx = n;
-                *_path = fs::path(roots[n].string().c_str());
-            }
-
-            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
+        if (ImGui::IsWindowHovered()){
+            Input::processInputRenderPanel(window->Window, *window->render_camera, deltaTime);
         }
-        ImGui::EndCombo();
-    }
-    std::vector<fs::directory_entry> files;
-    if (!fs::is_directory(*_path))
-    {
-        *_path = _path->parent_path();
-    }
-    for ( auto const& dir_entry : fs::directory_iterator{*_path})
-    {
-        files.push_back(dir_entry);
-    }
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
-    ImGui::BeginChild("FileList", ImVec2(width - 50, height - 100), ImGuiChildFlags_Border, window_flags);
-    static int selected_file = -1;
-    for ( int i = 0; i < files.size(); i++)
-    {
-        std::string filename = files[i].path().filename().string();
-        float width = 16;
-        float height = 16;
-        ImVec2 uv_min = ImVec2(0.0f, 0.0f);                        // Top-left
-        ImVec2 uv_max = ImVec2(1.0f, 1.0f);                        // Lower-right
-        ImVec4 tint_col = ImGui::GetStyleColorVec4(ImGuiCol_Text); // No tint
-        if (fs::is_directory(files[i]))
-        {
-            ImGui::Image((GLuint *)EditorContent::editor_tex["folder_ico"]->id, ImVec2(width, height), uv_min, uv_max, tint_col);
-        }
-        else
-        {
-            ImGui::Image((GLuint *)EditorContent::editor_tex["file_ico"]->id, ImVec2(width, height), uv_min, uv_max, tint_col);
-        }
-        ImGui::SameLine();
-        if (ImGui::Selectable(filename.c_str(), selected_file == i))
-        {
-            if (selected_file == i)
-            {
-                if (fs::is_directory(files[selected_file]))
-                {
-                    *_path = files[selected_file].path();
-                }
-                else
-                {
-                    *_path = files[selected_file].path();
-                    showFileBrowser = false;
-                }
-                selected_file = -1;
-            }
-            else
-            {
-                selected_file = i;
-            }
-        }
-    }
-    ImGui::EndChild();
-    if (ImGui::Button("Cancel"))
-    {
-        showFileBrowser = false;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Confirm"))
-    {
-        if (selected_file != -1)
-        {
-            if (fs::is_directory(files[selected_file]))
-            {
-                *_path = files[selected_file].path();
-            }
-            else
-            {
-                *_path = files[selected_file].path();
-                showFileBrowser = false;
-            }
-            selected_file = -1;
-        }
-        else
-        {
-            showFileBrowser = false;
-        }
-    }
-    ImGui::PopStyleVar();
-    ImGui::End();
-}
-
-/*********************
-* Import Model Panel
-**********************/
-void renderer_ui::ImportModelPanel(RendererWindow *window)
-{
-    if (!showImportModelPanel)
-    {
-        return;
-    }
-    int width = 400;
-    int height = 200;
-    ImGui::SetNextWindowPos(ImVec2(window->Width()/ 2, window->Height() / 2), ImGuiCond_Appearing);
-    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
-    {
-        ImGui::Begin("Import Model");
-        static char model_path[128];
-        strcpy_s(model_path, import_model_path.string().c_str());
-        static std::string info = "";
-        ImGui::InputText("Model Path", model_path, IM_ARRAYSIZE(model_path));
-        ImGui::SameLine();
-        if (ImGui::Button("..."))
-        {
-            // import_model_path = FileSystem::GetContentPath();
-            file_path = &import_model_path;
-            showFileBrowser = true;
-        }
-        if (ImGui::Button("Cancel"))
-        {
-            showImportModelPanel = false;
-            strcpy_s(model_path, import_model_path.string().c_str());
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Confirm"))
-        {
-            std::string path_s = model_path;
-            Model *new_model = new Model(path_s);
-            if (new_model->meshes.size() == 0)
-            {
-                info = "Load failed";
-            }
-            else
-            {
-                showImportModelPanel = false;
-                strcpy_s(model_path, import_model_path.string().c_str());
-            }
-        }
-        ImGui::Text(info.c_str());
-        ImGui::End();
-    }
-}
-
-/*********************
-* Import Shader Panel
-**********************/
-void renderer_ui::ImportShaderPanel(RendererWindow *window)
-{
-    if (!showImportShaderPanel)
-    {
-        return;
-    }
-    int width = 400;
-    int height = 200;
-    ImGui::SetNextWindowPos(ImVec2(window->Width() / 2, window->Height() / 2), ImGuiCond_Appearing);
-    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
-    ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
-    {
-        ImGui::Begin("Import Shader");
-
-        static std::string info = "";
-
-        static char vertex_path[128] = "vertex path..";
-        ImGui::InputText("vertex Path", vertex_path, IM_ARRAYSIZE(vertex_path));
-
-        static char frag_path[128] = "frag path..";
-        ImGui::InputText("frag Path", frag_path, IM_ARRAYSIZE(frag_path));
-
-        if (ImGui::Button("Cancel"))
-        {
-            showImportShaderPanel = false;
-            strcpy_s(vertex_path, "vertex path..");
-            strcpy_s(frag_path, "frag path..");
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Confirm"))
-        {
-            std::string vert_path_s = vertex_path;
-            std::string frag_path_s = frag_path;
-            Shader *new_shader = new Shader(vert_path_s.c_str(), frag_path_s.c_str());
-            if (!new_shader->LoadShader())
-            {
-                info = "Load failed";
-            }
-            else
-            {
-                showImportShaderPanel = false;
-                strcpy_s(vertex_path, "vert path..");
-                strcpy_s(frag_path, "frag path..");
-            }
-        }
-        ImGui::Text(info.c_str());
-        ImGui::End();
-    }
-}
-
-/*********************
-* Import Texture Panel
-**********************/
-void renderer_ui::ImportTexturePanel(RendererWindow *window)
-{
-    if (!showImportTexturePanel)
-    {
-        return;
-    }
-    int width = 500;
-    int height = 100;
-    ImGui::SetNextWindowPos(ImVec2(window->Width() / 2, window->Height() / 2), ImGuiCond_Appearing);
-    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
-    ImGui::Begin("Import Texture");
-    static char tex_path[128];
-    strcpy_s(tex_path, import_tex_path.string().c_str());
-    static std::string info = "";
-    ImGui::InputText("Texture Path", tex_path, IM_ARRAYSIZE(tex_path));
-    ImGui::SameLine();
-    if (ImGui::Button("..."))
-    {
-        // import_tex_path = FileSystem::GetContentPath();
-        file_path = &import_tex_path;
-        showFileBrowser = true;
-    }
-    if (ImGui::Button("Cancel"))
-    {
-        showImportTexturePanel = false;
-        strcpy_s(tex_path, import_tex_path.string().c_str());
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Confirm"))
-    {
-        std::string path_s = import_tex_path.string();
-        Texture2D *new_tex = new Texture2D(path_s);
-        if (!new_tex->is_valid)
-        {
-            info = "Load failed";
-        }
-        else
-        {
-            showImportTexturePanel = false;
-            strcpy_s(tex_path, import_tex_path.string().c_str());
-        }
-    }
-    ImGui::Text(info.c_str());
     ImGui::End();
 }
 
 /*********************
 * Main Panel
 **********************/
-void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
+void renderer_ui::mainUI(RendererWindow *window, Scene* scene, float deltaTime)
 {
-    int width = leftside;
-    int height = window->Height() / 4;
-    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
+    int width = window->Width() + leftside + rightside;
+    int height = window->Height() + bottomside + 40;
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags = 0;
     static bool p_open = true;
     window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus;
     {
-        ImGui::Begin("Main", &p_open, window_flags);
-
+        ImGui::Begin("Renderer", &p_open, window_flags);
+        ImGui::Text(" %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
+        {
+            ImGuiID dockspace_id = ImGui::GetID("Renderer");
+            mainID = dockspace_id;
+            ImGui::DockSpace(dockspace_id);
+        }
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("Files"))
@@ -457,35 +255,40 @@ void renderer_ui::mainUI(RendererWindow *window, Scene* scene)
             if (ImGui::BeginMenu("Window"))
             {
                 ImGui::Checkbox("Console", &showConsole);
+                ImGui::Checkbox("RenderPanel", &showRenderpanel);
+                ImGui::Checkbox("DetailPanel", &showDetail);
+                ImGui::Checkbox("ResourcePanel", &showResource);
+                ImGui::Checkbox("ScenePanel", &showScene);
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();
         }
-
-        ImGui::Text("Main Menu."); // Display some text (you can use a format strings too)
-        ImGui::Text(" %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        
         ImGui::End();
     }
-    ImportModelPanel(window);
-    ImportShaderPanel(window);
-    ImportTexturePanel(window);
-    FileBrowser(window, file_path);
+    ImportModelPanel(window, deltaTime);
+    ImportShaderPanel(window, deltaTime);
+    ImportTexturePanel(window, deltaTime);
+    FileBrowser(window, file_path, deltaTime);
     if (showConsole) RendererConsole::GetInstance()->Draw("Renderer Console", &showConsole);
 }
 
 /*********************
 * Scene Panel
 **********************/
-void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
+void renderer_ui::sceneUI(RendererWindow *window, Scene *scene, float deltaTime)
 {
+    if (!showScene)
+    {
+        return;
+    }
     int width = leftside;
     int height = window->Height() / 4 * 3;
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoCollapse;
-    static bool scene_open = true;
-    ImGui::SetNextWindowPos(ImVec2(0, window->Height() / 4), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(0, window->Height() / 4), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
     {
-        ImGui::Begin("Scene", &scene_open, flags);
+        ImGui::Begin("Scene", &showScene, flags);
         static int selected_obj = -1;
         std::vector<int> GC_Cache;
         if (selected_obj >= 0)
@@ -545,15 +348,18 @@ void renderer_ui::sceneUI(RendererWindow *window, Scene *scene)
 /*********************
 * Detail Panel
 **********************/
-void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
+void renderer_ui::detailUI(RendererWindow *window, Scene *scene, float deltaTime)
 {
+    if(!showDetail)
+    {
+        return;
+    }
     int width = rightside;
-    ImGui::SetNextWindowPos(ImVec2(window->Width() + leftside, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(width, window->Height()), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(window->Width() + leftside, 0), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, window->Height()), ImGuiCond_Appearing);
     {
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoCollapse;
-        static bool detail_open = true;
-        ImGui::Begin("Detail", &detail_open, flags);
+        ImGui::Begin("Detail", &showDetail, flags);
         if (selected != nullptr)
         {
             selected->RenderAttribute();
@@ -566,10 +372,14 @@ void renderer_ui::detailUI(RendererWindow *window, Scene *scene)
 /*********************
 * Resource Panel
 **********************/
-void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
+void renderer_ui::resourceUI(RendererWindow *window, Scene *scene, float deltaTime)
 {
-    ImGui::SetNextWindowPos(ImVec2(0, window->Height()), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(window->Width() + leftside + rightside, bottomside), ImGuiCond_Always);
+    if(!showResource)
+    {
+        return;
+    }
+    ImGui::SetNextWindowPos(ImVec2(0, window->Height()), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(window->Width() + leftside + rightside, bottomside), ImGuiCond_Appearing);
     // collect loaded resources' names
     std::vector<std::string> model_names;
     std::vector<std::string> tex_names;
@@ -592,9 +402,9 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
         shader_names.push_back(it->first);
     }
 
-    ImGui::SetNextWindowSize(ImVec2(window->Width() + leftside + rightside, bottomside), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(window->Width() + leftside + rightside, bottomside), ImGuiCond_Appearing);
     {
-        ImGui::Begin("Resource");
+        ImGui::Begin("Resource", &showResource);
         float preview_width = (window->Width() + leftside + rightside) / 2;
         float preview_height = bottomside - 40;
         ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
@@ -789,6 +599,282 @@ void renderer_ui::resourceUI(RendererWindow *window, Scene *scene)
 
         ImGui::End();
     }
+}
+
+/*********************
+* File Browser
+**********************/
+namespace fs = std::filesystem;
+void renderer_ui::FileBrowser(RendererWindow *window, std::filesystem::path *_path, float deltaTime)
+{
+    if (!showFileBrowser)
+    {
+        return;
+    }
+    int width = 400;
+    int height = 300;
+    ImGui::SetNextWindowPos(ImVec2((window->Width() - width) / 2, (window->Height() - height) / 2), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
+
+    ImGui::Begin("File Browser");
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+
+    if (ImGui::Button(".."))
+    {
+        *_path = _path->parent_path();
+    }
+    ImGui::SameLine();
+    std::vector<fs::path> roots = FileSystem::GetRootPaths();
+    int root_num = roots.size();
+    static int root_idx = 0;
+    if (ImGui::BeginCombo("root paths", _path->string().c_str()))
+    {
+        for (int n = 0; n < root_num; n++)
+        {
+            const bool is_selected = (root_idx == n);
+            if (ImGui::Selectable(roots[n].string().c_str(), is_selected))
+            {
+                root_idx = n;
+                *_path = fs::path(roots[n].string().c_str());
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+    std::vector<fs::directory_entry> files;
+    if (!fs::is_directory(*_path))
+    {
+        *_path = _path->parent_path();
+    }
+    for ( auto const& dir_entry : fs::directory_iterator{*_path})
+    {
+        files.push_back(dir_entry);
+    }
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
+    ImGui::BeginChild("FileList", ImVec2(width - 50, height - 100), ImGuiChildFlags_Border, window_flags);
+    static int selected_file = -1;
+    for ( int i = 0; i < files.size(); i++)
+    {
+        std::string filename = files[i].path().filename().string();
+        float width = 16;
+        float height = 16;
+        ImVec2 uv_min = ImVec2(0.0f, 0.0f);                        // Top-left
+        ImVec2 uv_max = ImVec2(1.0f, 1.0f);                        // Lower-right
+        ImVec4 tint_col = ImGui::GetStyleColorVec4(ImGuiCol_Text); // No tint
+        if (fs::is_directory(files[i]))
+        {
+            ImGui::Image((GLuint *)EditorContent::editor_tex["folder_ico"]->id, ImVec2(width, height), uv_min, uv_max, tint_col);
+        }
+        else
+        {
+            ImGui::Image((GLuint *)EditorContent::editor_tex["file_ico"]->id, ImVec2(width, height), uv_min, uv_max, tint_col);
+        }
+        ImGui::SameLine();
+        if (ImGui::Selectable(filename.c_str(), selected_file == i))
+        {
+            if (selected_file == i)
+            {
+                if (fs::is_directory(files[selected_file]))
+                {
+                    *_path = files[selected_file].path();
+                }
+                else
+                {
+                    *_path = files[selected_file].path();
+                    showFileBrowser = false;
+                }
+                selected_file = -1;
+            }
+            else
+            {
+                selected_file = i;
+            }
+        }
+    }
+    ImGui::EndChild();
+    if (ImGui::Button("Cancel"))
+    {
+        showFileBrowser = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Confirm"))
+    {
+        if (selected_file != -1)
+        {
+            if (fs::is_directory(files[selected_file]))
+            {
+                *_path = files[selected_file].path();
+            }
+            else
+            {
+                *_path = files[selected_file].path();
+                showFileBrowser = false;
+            }
+            selected_file = -1;
+        }
+        else
+        {
+            showFileBrowser = false;
+        }
+    }
+    ImGui::PopStyleVar();
+    ImGui::End();
+}
+
+/*********************
+* Import Model Panel
+**********************/
+void renderer_ui::ImportModelPanel(RendererWindow *window, float deltaTime)
+{
+    if (!showImportModelPanel)
+    {
+        return;
+    }
+    int width = 400;
+    int height = 200;
+    ImGui::SetNextWindowPos(ImVec2(window->Width()/ 2, window->Height() / 2), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
+    {
+        ImGui::Begin("Import Model");
+        static char model_path[128];
+        strcpy_s(model_path, import_model_path.string().c_str());
+        static std::string info = "";
+        ImGui::InputText("Model Path", model_path, IM_ARRAYSIZE(model_path));
+        ImGui::SameLine();
+        if (ImGui::Button("..."))
+        {
+            // import_model_path = FileSystem::GetContentPath();
+            file_path = &import_model_path;
+            showFileBrowser = true;
+        }
+        if (ImGui::Button("Cancel"))
+        {
+            showImportModelPanel = false;
+            strcpy_s(model_path, import_model_path.string().c_str());
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Confirm"))
+        {
+            std::string path_s = model_path;
+            Model *new_model = new Model(path_s);
+            if (new_model->meshes.size() == 0)
+            {
+                info = "Load failed";
+            }
+            else
+            {
+                showImportModelPanel = false;
+                strcpy_s(model_path, import_model_path.string().c_str());
+            }
+        }
+        ImGui::Text(info.c_str());
+        ImGui::End();
+    }
+}
+
+/*********************
+* Import Shader Panel
+**********************/
+void renderer_ui::ImportShaderPanel(RendererWindow *window, float deltaTime)
+{
+    if (!showImportShaderPanel)
+    {
+        return;
+    }
+    int width = 400;
+    int height = 200;
+    ImGui::SetNextWindowPos(ImVec2(window->Width() / 2, window->Height() / 2), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+    {
+        ImGui::Begin("Import Shader");
+
+        static std::string info = "";
+
+        static char vertex_path[128] = "vertex path..";
+        ImGui::InputText("vertex Path", vertex_path, IM_ARRAYSIZE(vertex_path));
+
+        static char frag_path[128] = "frag path..";
+        ImGui::InputText("frag Path", frag_path, IM_ARRAYSIZE(frag_path));
+
+        if (ImGui::Button("Cancel"))
+        {
+            showImportShaderPanel = false;
+            strcpy_s(vertex_path, "vertex path..");
+            strcpy_s(frag_path, "frag path..");
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Confirm"))
+        {
+            std::string vert_path_s = vertex_path;
+            std::string frag_path_s = frag_path;
+            Shader *new_shader = new Shader(vert_path_s.c_str(), frag_path_s.c_str());
+            if (!new_shader->LoadShader())
+            {
+                info = "Load failed";
+            }
+            else
+            {
+                showImportShaderPanel = false;
+                strcpy_s(vertex_path, "vert path..");
+                strcpy_s(frag_path, "frag path..");
+            }
+        }
+        ImGui::Text(info.c_str());
+        ImGui::End();
+    }
+}
+
+/*********************
+* Import Texture Panel
+**********************/
+void renderer_ui::ImportTexturePanel(RendererWindow *window, float deltaTime)
+{
+    if (!showImportTexturePanel)
+    {
+        return;
+    }
+    int width = 500;
+    int height = 100;
+    ImGui::SetNextWindowPos(ImVec2(window->Width() / 2, window->Height() / 2), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Appearing);
+    ImGui::Begin("Import Texture");
+    static char tex_path[128];
+    strcpy_s(tex_path, import_tex_path.string().c_str());
+    static std::string info = "";
+    ImGui::InputText("Texture Path", tex_path, IM_ARRAYSIZE(tex_path));
+    ImGui::SameLine();
+    if (ImGui::Button("..."))
+    {
+        // import_tex_path = FileSystem::GetContentPath();
+        file_path = &import_tex_path;
+        showFileBrowser = true;
+    }
+    if (ImGui::Button("Cancel"))
+    {
+        showImportTexturePanel = false;
+        strcpy_s(tex_path, import_tex_path.string().c_str());
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Confirm"))
+    {
+        std::string path_s = import_tex_path.string();
+        Texture2D *new_tex = new Texture2D(path_s);
+        if (!new_tex->is_valid)
+        {
+            info = "Load failed";
+        }
+        else
+        {
+            showImportTexturePanel = false;
+            strcpy_s(tex_path, import_tex_path.string().c_str());
+        }
+    }
+    ImGui::Text(info.c_str());
+    ImGui::End();
 }
 
 void renderer_ui::shutdown()
