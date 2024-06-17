@@ -1,10 +1,21 @@
 This is a tiny-renderer project written in c++ based on OpenGL
 
+Latest version :
+
+<img src="/img/renderer.png" style="zoom: 50%;" />
+
+Previous Released:
+
 <img src="/img/sample_gif_1.gif" style="zoom:50%;" />
 
 <img src="/img/renderer-preview.gif" style="zoom:50%;" />
 
 ## UpdateInfo
+
+Update 1.2.5
+
+- Imgui docking
+
 Update 1.2.4
 - A totally usable SSAO
 - Move render result to a imgui panel
@@ -16,6 +27,7 @@ Update 1.2.3
 Update 1.2.2
 - Add PostProcess Move Up/Down Button
   
+
 Update 1.2.1
 - Add a bloom post process
 - Remove the console window
