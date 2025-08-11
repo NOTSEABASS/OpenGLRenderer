@@ -15,6 +15,7 @@
 #include <postprocess.h>
 #include <iostream>
 #include <vector>
+#include <runtime/global_context.h>
 
 const double Pi = 3.1415926;
 
@@ -26,8 +27,13 @@ float deltaTime     = 0.0f;
 // Create camera
 Camera camera(glm::vec3(0.0f, 20.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90, -40);
 
-int main()
+int main(int argc, char** argv)
 {
+    std::cout << "Starting engine..." << std::endl;
+    std::filesystem::path executable_path(argv[0]);
+    RuntimeGlobalContext runtime_global_context;
+    runtime_global_context.startSystems(executable_path.generic_string());
+
     RendererWindow main_window(&camera, "Tiny-Renderer(v1.2.4)", WindowSize(400, 300));
     renderer_ui* imgui = new renderer_ui();
     imgui->setup(main_window.Window);

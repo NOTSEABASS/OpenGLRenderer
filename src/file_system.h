@@ -11,11 +11,16 @@ class FileSystem : public Singleton<FileSystem>
 {
 public:
     FileSystem();
-    static const fs::path GetProjectPath()      { return run_path.parent_path().parent_path(); }
+
+    void InitializeSystem(const std::string runtime_path);
+    static const fs::path GetProjectPath()      { return GetRuntimePath().parent_path().parent_path().parent_path(); }
     static const fs::path GetContentPath()      
     {
         auto path =  GetProjectPath() / "content";
-        assert(fs::exists(path));
+        if (!fs::exists(path)) {
+            std::cerr << "Content path does not exist: " << path << std::endl;
+            assert(false);
+        }
         return path; 
     }
     static const fs::path GetEditorPath()       
@@ -24,8 +29,12 @@ public:
         assert(fs::exists(path));
         return path; 
     }
+    static const fs::path GetRuntimePath(){ 
+        return GetInstance()->run_path; 
+    };
     static std::vector<fs::path> GetRootPaths();
 private:
+    bool isInitialized = false; 
     static std::vector<fs::path> root_paths;
-    static const fs::path run_path;
+    fs::path run_path;
 };

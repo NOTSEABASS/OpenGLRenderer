@@ -35,6 +35,7 @@ add_executable(${PROJECT_NAME}
     src/editor_settings.cpp
     src/renderer_window.cpp 
     src/input_management.cpp
+    src/runtime/global_context.cpp
     thirdparty/imgui/backends/imgui_impl_glfw.cpp
     thirdparty/imgui/backends/imgui_impl_opengl3.cpp
     thirdparty/imgui/imgui.cpp

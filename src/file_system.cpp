@@ -4,8 +4,12 @@ FileSystem::FileSystem()
 {
 }
 
+void FileSystem::InitializeSystem(const std::string runtime_path) {
+    if (!isInitialized)
+        run_path = runtime_path;
+};
+
 std::vector<fs::path> FileSystem::root_paths;
-const fs::path FileSystem::run_path = std::filesystem::current_path();
 
 std::vector<fs::path> FileSystem::GetRootPaths()
 {
