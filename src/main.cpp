@@ -15,7 +15,7 @@
 #include <postprocess.h>
 #include <iostream>
 #include <vector>
-#include <runtime/global_context.h>
+#include <runtime/function/global_context.h>
 
 const double Pi = 3.1415926;
 
