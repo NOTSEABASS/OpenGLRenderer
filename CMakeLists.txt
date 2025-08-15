@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.8)
 project(Renderer_Dev)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -12,14 +12,31 @@ add_definitions(-w)
 # SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb") # 定义Debug编译参数
 # SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall") # 定义Release编译参数
 
-include_directories(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/src
-                                    ${PROJECT_SOURCE_DIR}/thirdparty)
+set(ENGINE_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+message("Source Dir: " ${ENGINE_SRC_DIR})
+
+file(GLOB_RECURSE EDITOR_HEADERS CONFIGURE_DEPENDS   "${ENGINE_SRC_DIR}/editor/*.h")
+file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS   "${ENGINE_SRC_DIR}/editor/*.cpp")
+
+file(GLOB_RECURSE RUNTIME_HEADERS CONFIGURE_DEPENDS  "${ENGINE_SRC_DIR}/runtime/*.h")
+file(GLOB_RECURSE RUNTIME_SOURCES CONFIGURE_DEPENDS  "${ENGINE_SRC_DIR}/runtime/*.cpp")
+
+file(GLOB_RECURSE THIRDPARTY_HEADERS CONFIGURE_DEPENDS  "${ENGINE_SRC_DIR}/thirdparty/*.h")
+file(GLOB_RECURSE THIRDPARTY_SOURCES CONFIGURE_DEPENDS  "${ENGINE_SRC_DIR}/thirdparty/*.cpp")
+
+source_group(TREE "${ENGINE_SRC_DIR}/editor"  PREFIX "Editor" FILES ${EDITOR_HEADERS} ${EDITOR_SOURCES})
+source_group(TREE "${ENGINE_SRC_DIR}/runtime" PREFIX "Runtime" FILES ${RUNTIME_HEADERS} ${RUNTIME_SOURCES})
+
+
+include_directories(${PROJECT_NAME}
+    ${ENGINE_SRC_DIR}
+    ${PROJECT_SOURCE_DIR}/thirdparty)
+
 link_directories(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/lib)
 
-file(GLOB SRC_FILES 
-    src/*.c
-    src/*.cpp
-    src/runtime/function/*.cpp
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
+    "${ENGINE_SRC_DIR}/*.c"
+    "${ENGINE_SRC_DIR}/*.cpp"
 )
 
 file(GLOB IMGUI_FILES

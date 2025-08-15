@@ -1,5 +1,5 @@
 #include "global_context.h"
-#include <file_system.h>
+#include <runtime/platform/file_system.h>
 #include <iostream>
 
 void RuntimeGlobalContext::startSystems(const std::string &config_file_path)
